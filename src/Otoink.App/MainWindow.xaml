@@ -51,8 +51,9 @@
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- Settings gear (placeholder) -->
-        <Button Grid.Column="0"
+        <!-- Settings gear -->
+        <Button x:Name="SettingsButton"
+                Grid.Column="0"
                 Width="36"
                 Height="36"
                 HorizontalAlignment="Left"
@@ -60,7 +61,8 @@
                 Background="Transparent"
                 BorderThickness="0"
                 Cursor="Hand"
-                ToolTip="Settings">
+                ToolTip="Settings"
+                Click="OnSettingsClick">
           <Path Data="M19.14,12.94c0.04-0.31 0.06-0.63 0.06-0.94c0-0.31-0.02-0.63-0.06-0.94l2.03-1.58
                        c0.18-0.14 0.23-0.41 0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39 0.96
                        c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81C14.34,2.58 14.14,2.4 13.9,2.4h-3.8
@@ -77,6 +79,15 @@
                 Width="18"
                 Height="18" />
         </Button>
+
+        <Popup x:Name="SettingsPopup"
+               PlacementTarget="{Binding ElementName=SettingsButton}"
+               Placement="Top"
+               StaysOpen="False"
+               AllowsTransparency="True"
+               PopupAnimation="Fade"
+               HorizontalOffset="-8"
+               VerticalOffset="-6" />
 
         <!-- Mic button -->
         <Button x:Name="MicButton"

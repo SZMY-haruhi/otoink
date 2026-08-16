@@ -1,7 +1,10 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Threading;
+using Otoink.App.Asr;
+using Otoink.App.Audio;
 using Otoink.App.Win32;
 using Otoink.Core;
 
@@ -11,6 +14,18 @@ public partial class MainWindow : Window
 {
     private const double CollapsedHeight = 96;
     private const double ExpandedHeight = 96 + 240;
+    private const string ModelWaitingMessage = "请等待模型下载";
+
+    private static readonly Brush IdleMicBackground = Freeze(new SolidColorBrush(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF)));
+    private static readonly Brush RecordingMicBackground = Freeze(new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35)));
+    private static readonly Brush IdleMicIconBrush = Freeze(new SolidColorBrush(Color.FromRgb(0x7F, 0xDB, 0xFF)));
+    private static readonly Brush RecordingMicIconBrush = Brushes.White;
+
+    private static Brush Freeze(SolidColorBrush brush)
+    {
+        brush.Freeze();
+        return brush;
+    }
 
     private readonly UnicodeInjector _injector;
     private readonly SettingsStore _settingsStore;
@@ -18,8 +33,10 @@ public partial class MainWindow : Window
     private readonly TranscriptStore _history;
     private readonly DictationOrchestrator _orchestrator;
     private readonly HistoryPanel _historyPanel;
+    private readonly MicrophoneRecorder _recorder = new();
     private bool _settingsFlyoutOpen;
     private bool _historyExpanded;
+    private bool _utteranceBusy;
 
     public MainWindow(
         SettingsStore settingsStore,
@@ -38,6 +55,14 @@ public partial class MainWindow : Window
         HistoryHost.Child = _historyPanel;
         SettingsPopup.Opened += OnSettingsPopupOpened;
         SettingsPopup.Closed += OnSettingsPopupClosed;
+        _recorder.Stopped += OnRecorderStopped;
+        Closed += OnWindowClosed;
+    }
+
+    private void OnWindowClosed(object? sender, EventArgs e)
+    {
+        _recorder.Stopped -= OnRecorderStopped;
+        _recorder.Dispose();
     }
 
     private void OnSourceInitialized(object? sender, EventArgs e)
@@ -53,7 +78,98 @@ public partial class MainWindow : Window
 
     private void OnMicPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        if (_utteranceBusy)
+            return;
+
+        if (_recorder.IsRecording)
+        {
+            _recorder.Stop();
+            return;
+        }
+
+        if (!ModelLocator.IsInstalled())
+        {
+            ShowModelWaiting();
+            return;
+        }
+
+        MicButton.ToolTip = "Dictate";
         _injector.CaptureForeground();
+        try
+        {
+            _recorder.Start(ResolveDeviceNumber());
+            SetRecordingVisual(true);
+        }
+        catch (Exception ex)
+        {
+            SetRecordingVisual(false);
+            MicButton.ToolTip = ex.Message;
+        }
+    }
+
+    private async void OnRecorderStopped(float[] samples, int sampleRate)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.Invoke(() => OnRecorderStopped(samples, sampleRate));
+            return;
+        }
+
+        SetRecordingVisual(false);
+
+        if (samples.Length == 0)
+            return;
+
+        if (!ModelLocator.IsInstalled())
+        {
+            ShowModelWaiting();
+            return;
+        }
+
+        _utteranceBusy = true;
+        try
+        {
+            var entry = await _orchestrator.CompleteUtteranceAsync(
+                new DictationRequest { Samples = samples, SampleRate = sampleRate },
+                CancellationToken.None);
+
+            // Silence / empty ASR → null; ignore without error.
+            _ = entry;
+            _historyPanel.Refresh();
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("模型", StringComparison.Ordinal))
+        {
+            ShowModelWaiting();
+        }
+        catch (Exception ex)
+        {
+            MicButton.ToolTip = ex.Message;
+        }
+        finally
+        {
+            _utteranceBusy = false;
+        }
+    }
+
+    private void ShowModelWaiting()
+    {
+        MicButton.ToolTip = ModelWaitingMessage;
+        if (_historyExpanded)
+            _historyPanel.Refresh();
+    }
+
+    private int ResolveDeviceNumber()
+    {
+        if (string.IsNullOrEmpty(_settings.MicrophoneId))
+            return 0;
+        return int.TryParse(_settings.MicrophoneId, out var device) ? device : 0;
+    }
+
+    private void SetRecordingVisual(bool recording)
+    {
+        MicButton.Background = recording ? RecordingMicBackground : IdleMicBackground;
+        MicIcon.Fill = recording ? RecordingMicIconBrush : IdleMicIconBrush;
+        MicButton.ToolTip = recording ? "Stop" : "Dictate";
     }
 
     private void OnHistoryToggleClick(object sender, RoutedEventArgs e)

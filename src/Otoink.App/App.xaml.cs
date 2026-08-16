@@ -2,6 +2,7 @@ using System.IO;
 using System.Net.Http;
 using System.Windows;
 using Otoink.App.Asr;
+using Otoink.App.Tray;
 using Otoink.App.Win32;
 using Otoink.Core;
 using Otoink.Core.Ai;
@@ -18,6 +19,7 @@ public partial class App : System.Windows.Application
 
     private HttpClient? _http;
     private SenseVoiceEngine? _asr;
+    private NotifyIconService? _tray;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -41,13 +43,16 @@ public partial class App : System.Windows.Application
         TranscriptStore = new TranscriptStore();
         Orchestrator = new DictationOrchestrator(_asr, ai, Injector, TranscriptStore, () => Settings);
 
-        var window = new MainWindow(SettingsStore, Settings, TranscriptStore, Orchestrator, Injector);
+        _tray = new NotifyIconService();
+        var window = new MainWindow(SettingsStore, Settings, TranscriptStore, Orchestrator, Injector, _tray);
         MainWindow = window;
         window.Show();
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
+        _tray?.Dispose();
+        _tray = null;
         _asr?.Dispose();
         _http?.Dispose();
         base.OnExit(e);

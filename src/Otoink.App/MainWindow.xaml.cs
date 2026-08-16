@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -5,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using Otoink.App.Asr;
 using Otoink.App.Audio;
+using Otoink.App.Tray;
 using Otoink.App.Win32;
 using Otoink.Core;
 
@@ -12,6 +14,13 @@ namespace Otoink.App;
 
 public partial class MainWindow : Window
 {
+    private enum RecordingSource
+    {
+        None,
+        MicButton,
+        HoldHotkey
+    }
+
     private const double CollapsedHeight = 96;
     private const double ExpandedHeight = 96 + 240;
     private const string ModelWaitingMessage = "请等待模型下载";
@@ -34,40 +43,111 @@ public partial class MainWindow : Window
     private readonly DictationOrchestrator _orchestrator;
     private readonly HistoryPanel _historyPanel;
     private readonly MicrophoneRecorder _recorder = new();
+    private readonly NotifyIconService _tray;
+    private HoldHotkeyHook? _holdHotkey;
+    private RecordingSource _source = RecordingSource.None;
     private bool _settingsFlyoutOpen;
     private bool _historyExpanded;
     private bool _utteranceBusy;
+    private bool _forceClose;
 
     public MainWindow(
         SettingsStore settingsStore,
         AppSettings settings,
         TranscriptStore history,
         DictationOrchestrator orchestrator,
-        UnicodeInjector injector)
+        UnicodeInjector injector,
+        NotifyIconService tray)
     {
         _settingsStore = settingsStore;
         _settings = settings;
         _history = history;
         _orchestrator = orchestrator;
         _injector = injector;
+        _tray = tray;
         InitializeComponent();
         _historyPanel = new HistoryPanel(_history, _orchestrator);
         HistoryHost.Child = _historyPanel;
         SettingsPopup.Opened += OnSettingsPopupOpened;
         SettingsPopup.Closed += OnSettingsPopupClosed;
         _recorder.Stopped += OnRecorderStopped;
+        _tray.ShowRequested += OnTrayShowRequested;
+        _tray.ExitRequested += OnTrayExitRequested;
         Closed += OnWindowClosed;
     }
 
     private void OnWindowClosed(object? sender, EventArgs e)
     {
         _recorder.Stopped -= OnRecorderStopped;
+        _tray.ShowRequested -= OnTrayShowRequested;
+        _tray.ExitRequested -= OnTrayExitRequested;
+        _holdHotkey?.Dispose();
+        _holdHotkey = null;
         _recorder.Dispose();
     }
 
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
         ApplyNoActivateToolWindow();
+        InstallHoldHotkey();
+    }
+
+    private void InstallHoldHotkey()
+    {
+        _holdHotkey?.Dispose();
+        _holdHotkey = new HoldHotkeyHook(HoldHotkeyHook.ResolveVirtualKey(_settings.HoldHotkey));
+        _holdHotkey.KeyDown += OnHoldHotkeyKeyDown;
+        _holdHotkey.KeyUp += OnHoldHotkeyKeyUp;
+        _holdHotkey.Install();
+    }
+
+    private void OnHoldHotkeyKeyDown()
+    {
+        Dispatcher.BeginInvoke(OnHoldHotkeyPressed, DispatcherPriority.Send);
+    }
+
+    private void OnHoldHotkeyKeyUp()
+    {
+        Dispatcher.BeginInvoke(OnHoldHotkeyReleased, DispatcherPriority.Send);
+    }
+
+    private void OnHoldHotkeyPressed()
+    {
+        if (!IsVisible)
+            RestoreWindow();
+
+        if (_utteranceBusy || _recorder.IsRecording)
+            return;
+
+        if (!ModelLocator.IsInstalled())
+        {
+            ShowModelWaiting();
+            return;
+        }
+
+        MicButton.ToolTip = "Dictate";
+        _injector.CaptureForeground();
+        try
+        {
+            _recorder.Start(ResolveDeviceNumber());
+            _source = RecordingSource.HoldHotkey;
+            SetRecordingVisual(true);
+        }
+        catch (Exception ex)
+        {
+            _source = RecordingSource.None;
+            SetRecordingVisual(false);
+            MicButton.ToolTip = ex.Message;
+        }
+    }
+
+    private void OnHoldHotkeyReleased()
+    {
+        if (_source != RecordingSource.HoldHotkey)
+            return;
+
+        if (_recorder.IsRecording)
+            _recorder.Stop();
     }
 
     private void OnHeaderMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -83,7 +163,8 @@ public partial class MainWindow : Window
 
         if (_recorder.IsRecording)
         {
-            _recorder.Stop();
+            if (_source == RecordingSource.MicButton)
+                _recorder.Stop();
             return;
         }
 
@@ -98,10 +179,12 @@ public partial class MainWindow : Window
         try
         {
             _recorder.Start(ResolveDeviceNumber());
+            _source = RecordingSource.MicButton;
             SetRecordingVisual(true);
         }
         catch (Exception ex)
         {
+            _source = RecordingSource.None;
             SetRecordingVisual(false);
             MicButton.ToolTip = ex.Message;
         }
@@ -115,6 +198,7 @@ public partial class MainWindow : Window
             return;
         }
 
+        _source = RecordingSource.None;
         SetRecordingVisual(false);
 
         if (samples.Length == 0)
@@ -283,6 +367,39 @@ public partial class MainWindow : Window
 
     private void OnCloseClick(object sender, RoutedEventArgs e)
     {
-        Close();
+        Hide();
+    }
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        if (!_forceClose)
+        {
+            e.Cancel = true;
+            Hide();
+            return;
+        }
+
+        base.OnClosing(e);
+    }
+
+    private void OnTrayShowRequested()
+    {
+        Dispatcher.BeginInvoke(RestoreWindow, DispatcherPriority.Send);
+    }
+
+    private void OnTrayExitRequested()
+    {
+        Dispatcher.BeginInvoke(() =>
+        {
+            _forceClose = true;
+            System.Windows.Application.Current.Shutdown();
+        }, DispatcherPriority.Send);
+    }
+
+    private void RestoreWindow()
+    {
+        Show();
+        Topmost = true;
+        ApplyNoActivateToolWindow();
     }
 }

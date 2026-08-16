@@ -1,0 +1,10 @@
+# .NET build output
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio
+.vs/
+*.user
+
+# SDD scratch (should not be committed)
+.superpowers/

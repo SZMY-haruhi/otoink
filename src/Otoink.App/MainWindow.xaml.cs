@@ -9,16 +9,33 @@ namespace Otoink.App;
 
 public partial class MainWindow : Window
 {
-    private readonly UnicodeInjector _injector = new();
+    private const double CollapsedHeight = 96;
+    private const double ExpandedHeight = 96 + 240;
+
+    private readonly UnicodeInjector _injector;
     private readonly SettingsStore _settingsStore;
     private readonly AppSettings _settings;
+    private readonly TranscriptStore _history;
+    private readonly DictationOrchestrator _orchestrator;
+    private readonly HistoryPanel _historyPanel;
     private bool _settingsFlyoutOpen;
+    private bool _historyExpanded;
 
-    public MainWindow(SettingsStore settingsStore, AppSettings settings)
+    public MainWindow(
+        SettingsStore settingsStore,
+        AppSettings settings,
+        TranscriptStore history,
+        DictationOrchestrator orchestrator,
+        UnicodeInjector injector)
     {
         _settingsStore = settingsStore;
         _settings = settings;
+        _history = history;
+        _orchestrator = orchestrator;
+        _injector = injector;
         InitializeComponent();
+        _historyPanel = new HistoryPanel(_history, _orchestrator);
+        HistoryHost.Child = _historyPanel;
         SettingsPopup.Opened += OnSettingsPopupOpened;
         SettingsPopup.Closed += OnSettingsPopupClosed;
     }
@@ -37,6 +54,26 @@ public partial class MainWindow : Window
     private void OnMicPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         _injector.CaptureForeground();
+    }
+
+    private void OnHistoryToggleClick(object sender, RoutedEventArgs e)
+    {
+        _historyExpanded = !_historyExpanded;
+        if (_historyExpanded)
+        {
+            _historyPanel.Refresh();
+            HistoryHost.Visibility = Visibility.Visible;
+            Height = ExpandedHeight;
+            HistoryToggleRotate.Angle = 180;
+            HistoryToggleButton.ToolTip = "Collapse";
+        }
+        else
+        {
+            HistoryHost.Visibility = Visibility.Collapsed;
+            Height = CollapsedHeight;
+            HistoryToggleRotate.Angle = 0;
+            HistoryToggleButton.ToolTip = "History";
+        }
     }
 
     private void OnSettingsClick(object sender, RoutedEventArgs e)

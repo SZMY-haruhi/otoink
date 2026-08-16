@@ -1,0 +1,59 @@
+<UserControl x:Class="Otoink.App.HistoryPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent">
+  <Border BorderBrush="#33FFFFFF"
+          BorderThickness="0,1,0,0"
+          Padding="10,8,10,8">
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+      <ItemsControl x:Name="HistoryList">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Margin="0,0,0,8"
+                    Padding="8,6,8,6"
+                    Background="#22000000"
+                    CornerRadius="8">
+              <StackPanel>
+                <TextBlock Text="{Binding RawText}"
+                           Foreground="#EEEEEE"
+                           FontSize="12"
+                           TextWrapping="Wrap" />
+                <TextBlock Text="{Binding CorrectedDisplay}"
+                           Foreground="#7FDBFF"
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           Margin="0,4,0,0"
+                           Visibility="{Binding CorrectedVisibility}" />
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="#FFB86C"
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           Margin="0,4,0,0"
+                           Visibility="{Binding ErrorVisibility}" />
+                <StackPanel Orientation="Horizontal"
+                            Margin="0,6,0,0"
+                            HorizontalAlignment="Right">
+                  <Button Content="{Binding OptimizeButtonText}"
+                          Padding="8,2"
+                          Margin="0,0,6,0"
+                          FontSize="11"
+                          Cursor="Hand"
+                          IsEnabled="{Binding CanOptimize}"
+                          Tag="{Binding}"
+                          Click="OnOptimizeClick" />
+                  <Button Content="录入"
+                          Padding="8,2"
+                          FontSize="11"
+                          Cursor="Hand"
+                          Tag="{Binding}"
+                          Click="OnInsertClick" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </Border>
+</UserControl>

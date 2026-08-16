@@ -44,6 +44,11 @@
         </Grid>
       </Border>
 
+      <Border x:Name="HistoryHost"
+              DockPanel.Dock="Bottom"
+              Height="240"
+              Visibility="Collapsed" />
+
       <Grid Margin="12,4,12,10">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
@@ -123,8 +128,9 @@
                 Height="22" />
         </Button>
 
-        <!-- History / panel toggle (placeholder) -->
-        <Button Grid.Column="2"
+        <!-- History / panel toggle -->
+        <Button x:Name="HistoryToggleButton"
+                Grid.Column="2"
                 Width="36"
                 Height="36"
                 HorizontalAlignment="Right"
@@ -132,8 +138,10 @@
                 Background="Transparent"
                 BorderThickness="0"
                 Cursor="Hand"
-                ToolTip="History">
-          <Path Data="M4,6 H20 M4,12 H20 M4,18 H14 M16,16 L20,12 L16,8"
+                ToolTip="History"
+                Click="OnHistoryToggleClick">
+          <Path x:Name="HistoryToggleIcon"
+                Data="M4,6 H20 M4,12 H20 M4,18 H14 M16,16 L20,12 L16,8"
                 Stroke="#CCCCCCCC"
                 StrokeThickness="1.8"
                 StrokeStartLineCap="Round"
@@ -142,7 +150,12 @@
                 Stretch="Uniform"
                 Width="18"
                 Height="18"
-                Fill="Transparent" />
+                Fill="Transparent"
+                RenderTransformOrigin="0.5,0.5">
+            <Path.RenderTransform>
+              <RotateTransform x:Name="HistoryToggleRotate" Angle="0" />
+            </Path.RenderTransform>
+          </Path>
         </Button>
       </Grid>
     </DockPanel>

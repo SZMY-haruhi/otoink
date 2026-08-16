@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private const double CollapsedHeight = 96;
     private const double ExpandedHeight = 96 + 240;
     private const string ModelWaitingMessage = "请等待模型下载";
+    private const string ModelDownloadingMessage = "正在下载识别模型…";
 
     private static readonly Brush IdleMicBackground = Freeze(new SolidColorBrush(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF)));
     private static readonly Brush RecordingMicBackground = Freeze(new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35)));
@@ -50,6 +51,7 @@ public partial class MainWindow : Window
     private bool _historyExpanded;
     private bool _utteranceBusy;
     private bool _forceClose;
+    private bool _modelDownloading;
 
     public MainWindow(
         SettingsStore settingsStore,
@@ -74,6 +76,48 @@ public partial class MainWindow : Window
         _tray.ShowRequested += OnTrayShowRequested;
         _tray.ExitRequested += OnTrayExitRequested;
         Closed += OnWindowClosed;
+        if (!ModelLocator.IsInstalled())
+            MicButton.IsEnabled = false;
+    }
+
+    public void BeginModelDownload()
+    {
+        void Apply()
+        {
+            _modelDownloading = true;
+            MicButton.IsEnabled = false;
+            MicButton.ToolTip = ModelDownloadingMessage;
+        }
+
+        if (Dispatcher.CheckAccess())
+            Apply();
+        else
+            Dispatcher.Invoke(Apply);
+    }
+
+    public void EndModelDownload(bool success, string? error = null)
+    {
+        void Apply()
+        {
+            _modelDownloading = false;
+            if (success && ModelLocator.IsInstalled())
+            {
+                MicButton.IsEnabled = true;
+                MicButton.ToolTip = "Dictate";
+            }
+            else
+            {
+                MicButton.IsEnabled = false;
+                MicButton.ToolTip = string.IsNullOrWhiteSpace(error)
+                    ? ModelWaitingMessage
+                    : error;
+            }
+        }
+
+        if (Dispatcher.CheckAccess())
+            Apply();
+        else
+            Dispatcher.Invoke(Apply);
     }
 
     private void OnWindowClosed(object? sender, EventArgs e)
@@ -120,7 +164,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (!ModelLocator.IsInstalled())
+        if (_modelDownloading || !ModelLocator.IsInstalled())
         {
             if (!IsVisible)
                 RestoreWindow();
@@ -175,7 +219,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (!ModelLocator.IsInstalled())
+        if (_modelDownloading || !ModelLocator.IsInstalled())
         {
             ShowModelWaiting();
             return;
@@ -244,7 +288,7 @@ public partial class MainWindow : Window
 
     private void ShowModelWaiting()
     {
-        MicButton.ToolTip = ModelWaitingMessage;
+        MicButton.ToolTip = _modelDownloading ? ModelDownloadingMessage : ModelWaitingMessage;
         if (_historyExpanded)
             _historyPanel.Refresh();
     }

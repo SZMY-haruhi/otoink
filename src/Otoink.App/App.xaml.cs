@@ -47,6 +47,23 @@ public partial class App : System.Windows.Application
         var window = new MainWindow(SettingsStore, Settings, TranscriptStore, Orchestrator, Injector, _tray);
         MainWindow = window;
         window.Show();
+
+        if (!ModelLocator.IsInstalled())
+            _ = EnsureModelInstalledAsync(window);
+    }
+
+    private async Task EnsureModelInstalledAsync(MainWindow window)
+    {
+        window.BeginModelDownload();
+        try
+        {
+            await ModelDownloader.InstallAsync(_http!).ConfigureAwait(false);
+            window.EndModelDownload(success: true);
+        }
+        catch (Exception ex)
+        {
+            window.EndModelDownload(success: false, error: ex.Message);
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)

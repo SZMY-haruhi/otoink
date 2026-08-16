@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Threading;
 using Otoink.App.Win32;
 using Otoink.Core;
 
@@ -18,6 +19,7 @@ public partial class MainWindow : Window
         _settingsStore = settingsStore;
         _settings = settings;
         InitializeComponent();
+        SettingsPopup.Opened += OnSettingsPopupOpened;
         SettingsPopup.Closed += OnSettingsPopupClosed;
     }
 
@@ -52,6 +54,12 @@ public partial class MainWindow : Window
         Activate();
     }
 
+    private void OnSettingsPopupOpened(object? sender, EventArgs e)
+    {
+        // Popup HWND exists only after open + layout; clear its NOACTIVATE and focus it.
+        Dispatcher.BeginInvoke(EnableKeyboardOnPopupHwnd, DispatcherPriority.Loaded);
+    }
+
     private void OnSettingsPopupClosed(object? sender, EventArgs e)
     {
         if (!_settingsFlyoutOpen)
@@ -61,7 +69,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Temporarily clear WS_EX_NOACTIVATE so Popup TextBox/PasswordBox can receive keys.
+    /// Temporarily clear WS_EX_NOACTIVATE on the owner so Popup TextBox/PasswordBox can receive keys.
     /// </summary>
     private void EnableKeyboardForSettings()
     {
@@ -72,6 +80,29 @@ public partial class MainWindow : Window
         var exStyle = NativeMethods.GetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE).ToInt32();
         exStyle &= ~NativeMethods.WS_EX_NOACTIVATE;
         NativeMethods.SetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE, (IntPtr)exStyle);
+    }
+
+    /// <summary>
+    /// WPF Popup creates its own HWND with WS_EX_NOACTIVATE; clear that and focus it.
+    /// </summary>
+    private void EnableKeyboardOnPopupHwnd()
+    {
+        if (SettingsPopup.Child is not { } child)
+            return;
+
+        if (PresentationSource.FromVisual(child) is not HwndSource source)
+            return;
+
+        var popupHwnd = source.Handle;
+        if (popupHwnd == IntPtr.Zero)
+            return;
+
+        var exStyle = NativeMethods.GetWindowLongPtr(popupHwnd, NativeMethods.GWL_EXSTYLE).ToInt32();
+        exStyle &= ~NativeMethods.WS_EX_NOACTIVATE;
+        NativeMethods.SetWindowLongPtr(popupHwnd, NativeMethods.GWL_EXSTYLE, (IntPtr)exStyle);
+
+        NativeMethods.SetForegroundWindow(popupHwnd);
+        NativeMethods.SetFocus(popupHwnd);
     }
 
     /// <summary>

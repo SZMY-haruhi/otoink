@@ -33,8 +33,17 @@ public sealed class MicrophoneRecorder : IDisposable
         waveIn.DataAvailable += OnDataAvailable;
         waveIn.RecordingStopped += OnWaveInRecordingStopped;
         _waveIn = waveIn;
-        waveIn.StartRecording();
-        IsRecording = true;
+        try
+        {
+            waveIn.StartRecording();
+            IsRecording = true;
+        }
+        catch
+        {
+            CleanupWaveIn();
+            IsRecording = false;
+            throw;
+        }
     }
 
     public void Stop()
@@ -106,19 +115,21 @@ public sealed class MicrophoneRecorder : IDisposable
             return;
         _disposed = true;
 
+        // Unsubscribe before Dispose so RecordingStopped cannot race into a disposed WaveIn.
         if (_waveIn is not null)
         {
+            _waveIn.DataAvailable -= OnDataAvailable;
+            _waveIn.RecordingStopped -= OnWaveInRecordingStopped;
             try
             {
-                if (IsRecording)
-                    _waveIn.StopRecording();
+                _waveIn.Dispose();
             }
             catch
             {
                 // ignore teardown errors
             }
 
-            CleanupWaveIn();
+            _waveIn = null;
         }
 
         IsRecording = false;

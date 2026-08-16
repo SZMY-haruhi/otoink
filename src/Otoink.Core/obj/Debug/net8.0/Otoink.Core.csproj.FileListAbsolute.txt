@@ -1,0 +1,11 @@
+E:\My-Projects\My-Plugin\otoink\src\Otoink.Core\bin\Debug\net8.0\Otoink.Core.deps.json
+E:\My-Projects\My-Plugin\otoink\src\Otoink.Core\bin\Debug\net8.0\Otoink.Core.dll
+E:\My-Projects\My-Plugin\otoink\src\Otoink.Core\bin\Debug\net8.0\Otoink.Core.pdb
+E:\My-Projects\My-Plugin\otoink\src\Otoink.Core\obj\Debug\net8.0\Otoink.Core.GeneratedMSBuildEditorConfig.editorconfig
+E:\My-Projects\My-Plugin\otoink\src\Otoink.Core\obj\Debug\net8.0\Otoink.Core.AssemblyInfoInputs.cache
+E:\My-Projects\My-Plugin\otoink\src\Otoink.Core\obj\Debug\net8.0\Otoink.Core.AssemblyInfo.cs
+E:\My-Projects\My-Plugin\otoink\src\Otoink.Core\obj\Debug\net8.0\Otoink.Core.csproj.CoreCompileInputs.cache
+E:\My-Projects\My-Plugin\otoink\src\Otoink.Core\obj\Debug\net8.0\Otoink.Core.dll
+E:\My-Projects\My-Plugin\otoink\src\Otoink.Core\obj\Debug\net8.0\refint\Otoink.Core.dll
+E:\My-Projects\My-Plugin\otoink\src\Otoink.Core\obj\Debug\net8.0\Otoink.Core.pdb
+E:\My-Projects\My-Plugin\otoink\src\Otoink.Core\obj\Debug\net8.0\ref\Otoink.Core.dll

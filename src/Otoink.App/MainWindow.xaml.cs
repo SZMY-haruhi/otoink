@@ -11,30 +11,19 @@ public partial class MainWindow : Window
     private readonly UnicodeInjector _injector = new();
     private readonly SettingsStore _settingsStore;
     private readonly AppSettings _settings;
+    private bool _settingsFlyoutOpen;
 
     public MainWindow(SettingsStore settingsStore, AppSettings settings)
     {
         _settingsStore = settingsStore;
         _settings = settings;
         InitializeComponent();
+        SettingsPopup.Closed += OnSettingsPopupClosed;
     }
 
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
-        var hwnd = new WindowInteropHelper(this).Handle;
-
-        NativeMethods.SetWindowPos(
-            hwnd,
-            NativeMethods.HWND_TOPMOST,
-            0,
-            0,
-            0,
-            0,
-            NativeMethods.SWP_NOMOVE | NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOACTIVATE | NativeMethods.SWP_SHOWWINDOW);
-
-        var exStyle = NativeMethods.GetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE).ToInt32();
-        exStyle |= NativeMethods.WS_EX_NOACTIVATE | NativeMethods.WS_EX_TOOLWINDOW;
-        NativeMethods.SetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE, (IntPtr)exStyle);
+        ApplyNoActivateToolWindow();
     }
 
     private void OnHeaderMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -57,7 +46,55 @@ public partial class MainWindow : Window
         }
 
         SettingsPopup.Child = new SettingsFlyout(_settingsStore, _settings);
+        EnableKeyboardForSettings();
         SettingsPopup.IsOpen = true;
+        _settingsFlyoutOpen = true;
+        Activate();
+    }
+
+    private void OnSettingsPopupClosed(object? sender, EventArgs e)
+    {
+        if (!_settingsFlyoutOpen)
+            return;
+        _settingsFlyoutOpen = false;
+        ApplyNoActivateToolWindow();
+    }
+
+    /// <summary>
+    /// Temporarily clear WS_EX_NOACTIVATE so Popup TextBox/PasswordBox can receive keys.
+    /// </summary>
+    private void EnableKeyboardForSettings()
+    {
+        var hwnd = new WindowInteropHelper(this).Handle;
+        if (hwnd == IntPtr.Zero)
+            return;
+
+        var exStyle = NativeMethods.GetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE).ToInt32();
+        exStyle &= ~NativeMethods.WS_EX_NOACTIVATE;
+        NativeMethods.SetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE, (IntPtr)exStyle);
+    }
+
+    /// <summary>
+    /// Restore Task 7 bar behavior: no activation steal + tool window + topmost.
+    /// </summary>
+    private void ApplyNoActivateToolWindow()
+    {
+        var hwnd = new WindowInteropHelper(this).Handle;
+        if (hwnd == IntPtr.Zero)
+            return;
+
+        var exStyle = NativeMethods.GetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE).ToInt32();
+        exStyle |= NativeMethods.WS_EX_NOACTIVATE | NativeMethods.WS_EX_TOOLWINDOW;
+        NativeMethods.SetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE, (IntPtr)exStyle);
+
+        NativeMethods.SetWindowPos(
+            hwnd,
+            NativeMethods.HWND_TOPMOST,
+            0,
+            0,
+            0,
+            0,
+            NativeMethods.SWP_NOMOVE | NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOACTIVATE | NativeMethods.SWP_SHOWWINDOW);
     }
 
     private void OnCloseClick(object sender, RoutedEventArgs e)

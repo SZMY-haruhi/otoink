@@ -47,6 +47,7 @@
                           FontSize="11"
                           Cursor="Hand"
                           Tag="{Binding}"
+                          PreviewMouseLeftButtonDown="OnInsertPreviewMouseLeftButtonDown"
                           Click="OnInsertClick" />
                 </StackPanel>
               </StackPanel>

@@ -49,6 +49,16 @@
               Height="240"
               Visibility="Collapsed" />
 
+      <TextBlock x:Name="StatusText"
+                 DockPanel.Dock="Bottom"
+                 Margin="12,0,12,8"
+                 FontSize="11"
+                 Foreground="#FFCC80"
+                 TextWrapping="Wrap"
+                 TextAlignment="Center"
+                 Visibility="Collapsed"
+                 MouseLeftButtonDown="OnStatusMouseLeftButtonDown" />
+
       <Grid Margin="12,4,12,10">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />

@@ -5,6 +5,10 @@ namespace Otoink.App.Win32;
 
 public sealed class UnicodeInjector : ITextInjector
 {
+    /// <summary>
+    /// HWND captured at dictation start (mic/hotkey). Manual「录入」recaptures via
+    /// <see cref="CaptureForeground"/> on PreviewMouseLeftButtonDown before Insert.
+    /// </summary>
     private IntPtr _target = IntPtr.Zero;
 
     public void CaptureForeground()

@@ -20,6 +20,7 @@ public partial class App : System.Windows.Application
     private HttpClient? _http;
     private SenseVoiceEngine? _asr;
     private NotifyIconService? _tray;
+    private int _modelInstallInFlight;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -46,6 +47,7 @@ public partial class App : System.Windows.Application
         _tray = new NotifyIconService();
         var window = new MainWindow(SettingsStore, Settings, TranscriptStore, Orchestrator, Injector, _tray);
         MainWindow = window;
+        window.ModelDownloadRetryRequested += () => _ = EnsureModelInstalledAsync(window);
         window.Show();
 
         if (!ModelLocator.IsInstalled())
@@ -54,6 +56,9 @@ public partial class App : System.Windows.Application
 
     private async Task EnsureModelInstalledAsync(MainWindow window)
     {
+        if (Interlocked.CompareExchange(ref _modelInstallInFlight, 1, 0) != 0)
+            return;
+
         window.BeginModelDownload();
         try
         {
@@ -63,6 +68,10 @@ public partial class App : System.Windows.Application
         catch (Exception ex)
         {
             window.EndModelDownload(success: false, error: ex.Message);
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _modelInstallInFlight, 0);
         }
     }
 

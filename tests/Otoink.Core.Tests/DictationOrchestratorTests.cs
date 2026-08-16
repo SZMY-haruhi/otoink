@@ -70,6 +70,23 @@ public class DictationOrchestratorTests
         Assert.Equal(0, _ai.Calls);
     }
 
+    [Fact]
+    public async Task Complete_with_default_ai_when_ai_throws_keeps_raw_and_does_not_inject()
+    {
+        var ai = new ThrowingAi();
+        var session = new DictationOrchestrator(_asr, ai, _injector, _history, () => new AppSettings { DefaultAiInput = true });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            session.CompleteUtteranceAsync(new DictationRequest { Samples = new float[160], SampleRate = 16000 }, CancellationToken.None));
+
+        var entries = _history.ListNewestFirst().ToList();
+        Assert.Single(entries);
+        Assert.Equal("识别稿", entries[0].RawText);
+        Assert.Null(entries[0].CorrectedText);
+        Assert.Empty(_injector.Injected);
+        Assert.Equal(1, ai.Calls);
+    }
+
     private sealed class FakeAsr : IAsrEngine
     {
         private readonly string _text;
@@ -87,6 +104,16 @@ public class DictationOrchestratorTests
         {
             Calls++;
             return Task.FromResult(_text);
+        }
+    }
+
+    private sealed class ThrowingAi : IAiCorrector
+    {
+        public int Calls { get; private set; }
+        public Task<string> CorrectAsync(string rawText, CancellationToken cancellationToken)
+        {
+            Calls++;
+            throw new InvalidOperationException("AI unavailable");
         }
     }
 

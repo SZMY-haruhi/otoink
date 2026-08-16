@@ -23,6 +23,7 @@ public partial class MainWindow : Window
 
     private const double CollapsedHeight = 96;
     private const double ExpandedHeight = 96 + 240;
+    private const double StatusBandHeight = 24;
     private const string ModelWaitingMessage = "请等待模型下载";
     private const string ModelDownloadingMessage = "正在下载识别模型…";
 
@@ -52,6 +53,10 @@ public partial class MainWindow : Window
     private bool _utteranceBusy;
     private bool _forceClose;
     private bool _modelDownloading;
+    private bool _statusAllowsRetry;
+
+    /// <summary>Raised when the user asks to retry a failed first-run model download.</summary>
+    public event Action? ModelDownloadRetryRequested;
 
     public MainWindow(
         SettingsStore settingsStore,
@@ -68,7 +73,7 @@ public partial class MainWindow : Window
         _injector = injector;
         _tray = tray;
         InitializeComponent();
-        _historyPanel = new HistoryPanel(_history, _orchestrator);
+        _historyPanel = new HistoryPanel(_history, _orchestrator, _injector);
         HistoryHost.Child = _historyPanel;
         SettingsPopup.Opened += OnSettingsPopupOpened;
         SettingsPopup.Closed += OnSettingsPopupClosed;
@@ -87,6 +92,7 @@ public partial class MainWindow : Window
             _modelDownloading = true;
             MicButton.IsEnabled = false;
             MicButton.ToolTip = ModelDownloadingMessage;
+            ShowStatus(ModelDownloadingMessage, allowRetry: false);
         }
 
         if (Dispatcher.CheckAccess())
@@ -104,13 +110,16 @@ public partial class MainWindow : Window
             {
                 MicButton.IsEnabled = true;
                 MicButton.ToolTip = "Dictate";
+                ClearStatus();
             }
             else
             {
                 MicButton.IsEnabled = false;
-                MicButton.ToolTip = string.IsNullOrWhiteSpace(error)
+                var message = string.IsNullOrWhiteSpace(error)
                     ? ModelWaitingMessage
                     : error;
+                MicButton.ToolTip = message;
+                ShowStatus(message + "（点击重试）", allowRetry: true);
             }
         }
 
@@ -118,6 +127,38 @@ public partial class MainWindow : Window
             Apply();
         else
             Dispatcher.Invoke(Apply);
+    }
+
+    private void ShowStatus(string message, bool allowRetry)
+    {
+        _statusAllowsRetry = allowRetry;
+        StatusText.Text = message;
+        StatusText.Visibility = Visibility.Visible;
+        StatusText.Cursor = allowRetry ? Cursors.Hand : Cursors.Arrow;
+        UpdateBarHeight();
+    }
+
+    private void ClearStatus()
+    {
+        _statusAllowsRetry = false;
+        StatusText.Text = "";
+        StatusText.Visibility = Visibility.Collapsed;
+        StatusText.Cursor = Cursors.Arrow;
+        UpdateBarHeight();
+    }
+
+    private void UpdateBarHeight()
+    {
+        var height = _historyExpanded ? ExpandedHeight : CollapsedHeight;
+        if (StatusText.Visibility == Visibility.Visible)
+            height += StatusBandHeight;
+        Height = height;
+    }
+
+    private void OnStatusMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (_statusAllowsRetry && !_modelDownloading)
+            ModelDownloadRetryRequested?.Invoke();
     }
 
     private void OnWindowClosed(object? sender, EventArgs e)
@@ -168,7 +209,10 @@ public partial class MainWindow : Window
         {
             if (!IsVisible)
                 RestoreWindow();
-            ShowModelWaiting();
+            if (!_modelDownloading && _statusAllowsRetry)
+                ModelDownloadRetryRequested?.Invoke();
+            else
+                ShowModelWaiting();
             return;
         }
 
@@ -221,7 +265,10 @@ public partial class MainWindow : Window
 
         if (_modelDownloading || !ModelLocator.IsInstalled())
         {
-            ShowModelWaiting();
+            if (!_modelDownloading && _statusAllowsRetry)
+                ModelDownloadRetryRequested?.Invoke();
+            else
+                ShowModelWaiting();
             return;
         }
 
@@ -270,7 +317,6 @@ public partial class MainWindow : Window
 
             // Silence / empty ASR → null; ignore without error.
             _ = entry;
-            _historyPanel.Refresh();
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("模型", StringComparison.Ordinal))
         {
@@ -282,13 +328,20 @@ public partial class MainWindow : Window
         }
         finally
         {
+            // Raw history may already exist when DefaultAiInput AI fails — always refresh.
+            _historyPanel.Refresh();
             _utteranceBusy = false;
         }
     }
 
     private void ShowModelWaiting()
     {
-        MicButton.ToolTip = _modelDownloading ? ModelDownloadingMessage : ModelWaitingMessage;
+        var message = _modelDownloading ? ModelDownloadingMessage : ModelWaitingMessage;
+        MicButton.ToolTip = message;
+        if (!_modelDownloading && StatusText.Visibility != Visibility.Visible)
+            ShowStatus(message + "（点击重试）", allowRetry: true);
+        else if (_modelDownloading)
+            ShowStatus(ModelDownloadingMessage, allowRetry: false);
         if (_historyExpanded)
             _historyPanel.Refresh();
     }
@@ -314,17 +367,17 @@ public partial class MainWindow : Window
         {
             _historyPanel.Refresh();
             HistoryHost.Visibility = Visibility.Visible;
-            Height = ExpandedHeight;
             HistoryToggleRotate.Angle = 180;
             HistoryToggleButton.ToolTip = "Collapse";
         }
         else
         {
             HistoryHost.Visibility = Visibility.Collapsed;
-            Height = CollapsedHeight;
             HistoryToggleRotate.Angle = 0;
             HistoryToggleButton.ToolTip = "History";
         }
+
+        UpdateBarHeight();
     }
 
     private void OnSettingsClick(object sender, RoutedEventArgs e)

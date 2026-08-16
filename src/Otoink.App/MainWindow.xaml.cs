@@ -113,20 +113,27 @@ public partial class MainWindow : Window
 
     private void OnHoldHotkeyPressed()
     {
-        if (!IsVisible)
-            RestoreWindow();
-
         if (_utteranceBusy || _recorder.IsRecording)
+        {
+            if (!IsVisible)
+                RestoreWindow();
             return;
+        }
 
         if (!ModelLocator.IsInstalled())
         {
+            if (!IsVisible)
+                RestoreWindow();
             ShowModelWaiting();
             return;
         }
 
         MicButton.ToolTip = "Dictate";
+        // Capture target HWND before Show() can steal foreground.
         _injector.CaptureForeground();
+        if (!IsVisible)
+            RestoreWindow();
+
         try
         {
             _recorder.Start(ResolveDeviceNumber());

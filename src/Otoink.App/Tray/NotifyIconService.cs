@@ -77,6 +77,7 @@ public sealed class NotifyIconService : IDisposable
 
         _notifyIcon.MouseClick -= OnMouseClick;
         _notifyIcon.Visible = false;
+        _notifyIcon.ContextMenuStrip?.Dispose();
         _notifyIcon.Dispose();
         _ownedIcon?.Dispose();
         _ownedIcon = null;

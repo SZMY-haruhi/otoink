@@ -154,6 +154,22 @@
                 <Border Style="{StaticResource SettingRow}">
                   <StackPanel>
                     <DockPanel MinHeight="28">
+                      <ComboBox x:Name="AsrLanguageCombo"
+                                DockPanel.Dock="Right"
+                                Width="168"
+                                VerticalAlignment="Center"
+                                SelectionChanged="OnAsrLanguageChanged" />
+                      <TextBlock x:Name="AsrLanguageLabel"
+                                 Foreground="{DynamicResource TextPrimary}"
+                                 FontSize="15"
+                                 VerticalAlignment="Center" />
+                    </DockPanel>
+                    <Rectangle Style="{StaticResource Hairline}" Margin="0,18,0,0" />
+                  </StackPanel>
+                </Border>
+                <Border Style="{StaticResource SettingRow}">
+                  <StackPanel>
+                    <DockPanel MinHeight="28">
                       <WrapPanel x:Name="SkinList" DockPanel.Dock="Right" VerticalAlignment="Center" />
                       <TextBlock x:Name="SkinLabel"
                                  Foreground="{DynamicResource TextPrimary}"

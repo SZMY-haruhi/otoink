@@ -22,6 +22,7 @@ public class SettingsStoreTests
             ApiProvider = "anthropic",
             HoldHotkey = "RightCtrl",
             UiLocale = "en",
+            AsrLanguage = "en",
             UiSkin = "ion"
         });
 
@@ -36,6 +37,7 @@ public class SettingsStoreTests
         Assert.Equal("anthropic", loaded.ApiProvider);
         Assert.Equal("RightCtrl", loaded.HoldHotkey);
         Assert.Equal("en", loaded.UiLocale);
+        Assert.Equal("en", loaded.AsrLanguage);
         Assert.Equal("ion", loaded.UiSkin);
     }
 
@@ -54,6 +56,7 @@ public class SettingsStoreTests
         Assert.Equal("", loaded.ApiKey);
         Assert.Equal("", loaded.MicrophoneId);
         Assert.Equal("zh-Hans", loaded.UiLocale);
+        Assert.Equal("zh", loaded.AsrLanguage);
         Assert.Equal("void", loaded.UiSkin);
     }
 }

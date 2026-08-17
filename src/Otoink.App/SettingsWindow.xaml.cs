@@ -76,6 +76,7 @@ public partial class SettingsWindow : Window
         TabApi.Content = Loc.T("Settings.TabApi");
         TabHistory.Content = Loc.T("Settings.TabHistory");
         LanguageLabel.Text = Loc.T("Settings.Language");
+        AsrLanguageLabel.Text = Loc.T("Settings.AsrLanguage");
         SkinLabel.Text = Loc.T("Settings.Skin");
         AutoPunctuationLabel.Text = Loc.T("Settings.AutoPunctuation");
         HoldHotkeyLabel.Text = Loc.T("Settings.HoldHotkey");
@@ -104,6 +105,7 @@ public partial class SettingsWindow : Window
             LanguageCombo.Items.Add(new LocaleOption(Loc.ZhHans, Loc.T("Lang.zhHans")));
             LanguageCombo.Items.Add(new LocaleOption(Loc.En, Loc.T("Lang.en")));
             LanguageCombo.SelectedIndex = Loc.Current == Loc.En ? 1 : 0;
+            FillAsrLanguageCombo();
             FillProviderCombo();
             UpdateApiHint();
             foreach (var child in SkinList.Children)
@@ -330,6 +332,16 @@ public partial class SettingsWindow : Window
         Loc.Apply(option.Id);
     }
 
+    private void OnAsrLanguageChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_suppressSave)
+            return;
+        if (AsrLanguageCombo.SelectedItem is not LocaleOption option)
+            return;
+        _settings.AsrLanguage = AsrLanguage.Normalize(option.Id);
+        Persist();
+    }
+
     private void OnDefaultAiInputChanged(object sender, RoutedEventArgs e)
     {
         if (_suppressSave)
@@ -451,6 +463,22 @@ public partial class SettingsWindow : Window
     }
 
     private WaveInEvent? _meter;
+
+    private void FillAsrLanguageCombo()
+    {
+        var current = AsrLanguage.Normalize(_settings.AsrLanguage);
+        AsrLanguageCombo.Items.Clear();
+        var selected = 0;
+        for (var i = 0; i < AsrLanguage.All.Length; i++)
+        {
+            var id = AsrLanguage.All[i];
+            AsrLanguageCombo.Items.Add(new LocaleOption(id, Loc.T("AsrLang." + id)));
+            if (id == current)
+                selected = i;
+        }
+
+        AsrLanguageCombo.SelectedIndex = selected;
+    }
 
     private void FillProviderCombo()
     {

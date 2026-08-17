@@ -66,6 +66,9 @@
   <data name="Settings.Language" xml:space="preserve">
     <value>界面语言</value>
   </data>
+  <data name="Settings.AsrLanguage" xml:space="preserve">
+    <value>默认识别语言</value>
+  </data>
   <data name="Settings.AutoPunctuation" xml:space="preserve">
     <value>自动标点符号</value>
   </data>
@@ -182,6 +185,24 @@
   </data>
   <data name="Lang.en" xml:space="preserve">
     <value>English</value>
+  </data>
+  <data name="AsrLang.zh" xml:space="preserve">
+    <value>中文</value>
+  </data>
+  <data name="AsrLang.en" xml:space="preserve">
+    <value>英语</value>
+  </data>
+  <data name="AsrLang.yue" xml:space="preserve">
+    <value>粤语</value>
+  </data>
+  <data name="AsrLang.ja" xml:space="preserve">
+    <value>日语</value>
+  </data>
+  <data name="AsrLang.ko" xml:space="preserve">
+    <value>韩语</value>
+  </data>
+  <data name="AsrLang.auto" xml:space="preserve">
+    <value>自动</value>
   </data>
   <data name="Settings.Skin" xml:space="preserve">
     <value>皮肤</value>

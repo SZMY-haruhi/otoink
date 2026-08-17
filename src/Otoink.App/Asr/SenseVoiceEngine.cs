@@ -9,6 +9,7 @@ public sealed class SenseVoiceEngine : IAsrEngine, IDisposable
     private readonly object _gate = new();
     private OfflineRecognizer? _recognizer;
     private bool? _autoPunctuation;
+    private string? _language;
 
     public SenseVoiceEngine(Func<AppSettings> settings) => _settings = settings;
 
@@ -42,8 +43,10 @@ public sealed class SenseVoiceEngine : IAsrEngine, IDisposable
 
     private void EnsureRecognizer()
     {
-        var autoPunctuation = _settings().AutoPunctuation;
-        if (_recognizer != null && _autoPunctuation == autoPunctuation)
+        var snapshot = _settings();
+        var autoPunctuation = snapshot.AutoPunctuation;
+        var language = AsrLanguage.Normalize(snapshot.AsrLanguage);
+        if (_recognizer != null && _autoPunctuation == autoPunctuation && _language == language)
             return;
 
         _recognizer?.Dispose();
@@ -57,12 +60,14 @@ public sealed class SenseVoiceEngine : IAsrEngine, IDisposable
         config.FeatConfig.FeatureDim = 80;
         config.ModelConfig.Tokens = ModelLocator.Tokens;
         config.ModelConfig.SenseVoice.Model = ModelLocator.ResolveModelPath();
+        config.ModelConfig.SenseVoice.Language = language;
         config.ModelConfig.SenseVoice.UseInverseTextNormalization = autoPunctuation ? 1 : 0;
         config.ModelConfig.NumThreads = Math.Clamp(Environment.ProcessorCount, 1, 4);
         config.DecodingMethod = "greedy_search";
 
         _recognizer = new OfflineRecognizer(config);
         _autoPunctuation = autoPunctuation;
+        _language = language;
     }
 
     public void Dispose()

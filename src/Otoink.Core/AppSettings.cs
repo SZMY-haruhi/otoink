@@ -12,5 +12,6 @@ public sealed class AppSettings
     public string ApiProvider { get; set; } = "openai";
     public string HoldHotkey { get; set; } = "RightCtrl";
     public string UiLocale { get; set; } = "zh-Hans";
+    public string AsrLanguage { get; set; } = "zh";
     public string UiSkin { get; set; } = "void";
 }

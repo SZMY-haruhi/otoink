@@ -64,7 +64,10 @@
     <value>History</value>
   </data>
   <data name="Settings.Language" xml:space="preserve">
-    <value>Language</value>
+    <value>Interface language</value>
+  </data>
+  <data name="Settings.AsrLanguage" xml:space="preserve">
+    <value>Recognition language</value>
   </data>
   <data name="Settings.AutoPunctuation" xml:space="preserve">
     <value>Auto punctuation</value>
@@ -182,6 +185,24 @@
   </data>
   <data name="Lang.en" xml:space="preserve">
     <value>English</value>
+  </data>
+  <data name="AsrLang.zh" xml:space="preserve">
+    <value>Chinese</value>
+  </data>
+  <data name="AsrLang.en" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="AsrLang.yue" xml:space="preserve">
+    <value>Cantonese</value>
+  </data>
+  <data name="AsrLang.ja" xml:space="preserve">
+    <value>Japanese</value>
+  </data>
+  <data name="AsrLang.ko" xml:space="preserve">
+    <value>Korean</value>
+  </data>
+  <data name="AsrLang.auto" xml:space="preserve">
+    <value>Auto</value>
   </data>
   <data name="Settings.Skin" xml:space="preserve">
     <value>Skin</value>

@@ -1,10 +1,7 @@
 using System.IO;
 using System.Net.Http;
-using SharpCompress.Archives;
-using SharpCompress.Archives.Tar;
 using SharpCompress.Common;
-using SharpCompress.Compressors;
-using SharpCompress.Compressors.BZip2;
+using SharpCompress.Readers;
 
 namespace Otoink.App.Asr;
 
@@ -21,7 +18,6 @@ public static class ModelDownloader
         Directory.CreateDirectory(ModelLocator.Root);
 
         var tempBz2 = Path.Combine(Path.GetTempPath(), $"otoink-sense-voice-{Guid.NewGuid():N}.tar.bz2");
-        var tempTar = Path.ChangeExtension(tempBz2, ".tar");
 
         try
         {
@@ -38,9 +34,7 @@ public static class ModelDownloader
             await Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                DecompressBz2ToTar(tempBz2, tempTar);
-                cancellationToken.ThrowIfCancellationRequested();
-                ExtractModelFiles(tempTar);
+                ExtractModelFiles(tempBz2);
             }, cancellationToken).ConfigureAwait(false);
 
             if (!ModelLocator.IsInstalled())
@@ -49,24 +43,17 @@ public static class ModelDownloader
         finally
         {
             TryDelete(tempBz2);
-            TryDelete(tempTar);
         }
     }
 
-    private static void DecompressBz2ToTar(string bz2Path, string tarPath)
+    private static void ExtractModelFiles(string archivePath)
     {
-        using var input = File.OpenRead(bz2Path);
-        using var bz2 = new BZip2Stream(input, CompressionMode.Decompress, decompressConcatenated: false);
-        using var output = File.Create(tarPath);
-        bz2.CopyTo(output);
-    }
+        using var stream = File.OpenRead(archivePath);
+        using var reader = ReaderFactory.OpenReader(stream);
 
-    private static void ExtractModelFiles(string tarPath)
-    {
-        using var archive = TarArchive.Open(tarPath);
-
-        foreach (var entry in archive.Entries)
+        while (reader.MoveToNextEntry())
         {
+            var entry = reader.Entry;
             if (entry.IsDirectory || string.IsNullOrEmpty(entry.Key))
                 continue;
 
@@ -82,7 +69,7 @@ public static class ModelDownloader
                 continue;
 
             Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
-            entry.WriteToFile(dest, new ExtractionOptions { Overwrite = true });
+            reader.WriteEntryToFile(dest, new ExtractionOptions { Overwrite = true });
         }
     }
 

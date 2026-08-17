@@ -43,7 +43,7 @@ Each transcript can be **polished** later, then **inserted** into the current wi
 
 ## Versus Dictto
 
-Dictto sends ASR to the cloud and cannot type without a key. otoink recognizes only locally. You may study the interaction (morphing capsule, click-to-talk, a separate settings window). **Do not copy its code, palette, fonts, or icons** (Dictto is AGPL-3.0).
+Dictto relies on cloud ASR and requires an API key to function, whereas my project, otoink, handles recognition entirely locally. I learned a lot from Dictto's interaction design—such as its morphing capsule, click-to-talk, and separate settings window—and incorporated these ideas while building my own experience. (Dictto is licensed under AGPL-3.0).
 
 ## First run
 

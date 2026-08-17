@@ -30,6 +30,9 @@
   <data name="Toast.NeedApiKey" xml:space="preserve">
     <value>请先在设置里填写 API Key</value>
   </data>
+  <data name="Toast.AlreadyRunning" xml:space="preserve">
+    <value>已在运行</value>
+  </data>
   <data name="Toast.WarmingUp" xml:space="preserve">
     <value>正在预热本地引擎…</value>
   </data>
@@ -82,7 +85,7 @@
     <value>说完后自动润色</value>
   </data>
   <data name="Settings.AutoPolishHint" xml:space="preserve">
-    <value>需在 API 页填写 Key</value>
+    <value>听写仍走本地。没 Key 时原文照出，并提示填写。</value>
   </data>
   <data name="Settings.Microphone" xml:space="preserve">
     <value>麦克风</value>
@@ -106,7 +109,7 @@
     <value>Key 仅用于润色，可自定义 Prompt</value>
   </data>
   <data name="Settings.ApiHintOpenAi" xml:space="preserve">
-    <value>走 OpenAI Chat Completions。DeepSeek、Groq、硅基流动等兼容接口可直接填地址。</value>
+    <value>走 OpenAI Chat Completions，只用于润色，不用于听写。DeepSeek、千问、Groq、硅基流动等兼容接口可直接填地址和模型名。</value>
   </data>
   <data name="Settings.ApiHintAnthropic" xml:space="preserve">
     <value>走 Anthropic Messages API。官方地址为 api.anthropic.com，使用 x-api-key。</value>

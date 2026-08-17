@@ -30,6 +30,9 @@
   <data name="Toast.NeedApiKey" xml:space="preserve">
     <value>Add an API key in Settings to polish</value>
   </data>
+  <data name="Toast.AlreadyRunning" xml:space="preserve">
+    <value>Already running</value>
+  </data>
   <data name="Toast.WarmingUp" xml:space="preserve">
     <value>Warming up the local engine…</value>
   </data>
@@ -82,7 +85,7 @@
     <value>Polish after speaking</value>
   </data>
   <data name="Settings.AutoPolishHint" xml:space="preserve">
-    <value>Requires an API key on the API page</value>
+    <value>Dictation stays local. Without a key, raw text is inserted and a reminder appears.</value>
   </data>
   <data name="Settings.Microphone" xml:space="preserve">
     <value>Microphone</value>
@@ -106,7 +109,7 @@
     <value>Dictation works without a key. Prompt is sent when polishing.</value>
   </data>
   <data name="Settings.ApiHintOpenAi" xml:space="preserve">
-    <value>Uses OpenAI Chat Completions. DeepSeek, Groq, and other compatible endpoints work with a base URL.</value>
+    <value>Uses OpenAI Chat Completions for polishing only, not dictation. DeepSeek, Qwen, Groq, and other compatible endpoints work with a base URL and model name.</value>
   </data>
   <data name="Settings.ApiHintAnthropic" xml:space="preserve">
     <value>Uses the Anthropic Messages API at api.anthropic.com with x-api-key.</value>

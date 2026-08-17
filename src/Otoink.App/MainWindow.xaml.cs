@@ -198,6 +198,9 @@ public partial class MainWindow : Window
             Dispatcher.Invoke(Apply);
     }
 
+    public void NotifyAlreadyRunning() =>
+        ShowToast(Loc.T("Toast.AlreadyRunning"));
+
     public void ShowToast(string message, bool persist = false)
     {
         ToastText.Text = MapError(message);

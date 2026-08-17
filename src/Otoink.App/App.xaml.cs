@@ -31,6 +31,16 @@ public partial class App : System.Windows.Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        var preview = e.Args.Any(a =>
+            string.Equals(a, "--preview", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(a, "--preview-export", StringComparison.OrdinalIgnoreCase));
+        if (!preview && !SingleInstance.TryTake())
+        {
+            SingleInstance.RequestActivate();
+            Shutdown();
+            return;
+        }
+
         base.OnStartup(e);
         DispatcherUnhandledException += (_, args) =>
         {
@@ -67,9 +77,6 @@ public partial class App : System.Windows.Application
         _tray.SettingsRequested += () => Dispatcher.BeginInvoke(ShowSettings);
         _tray.MenuRequested += point => Dispatcher.BeginInvoke(() => ShowTrayMenu(point.X, point.Y));
 
-        var preview = e.Args.Any(a =>
-            string.Equals(a, "--preview", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(a, "--preview-export", StringComparison.OrdinalIgnoreCase));
         var export = e.Args.Any(a =>
             string.Equals(a, "--preview-export", StringComparison.OrdinalIgnoreCase));
 
@@ -96,6 +103,7 @@ public partial class App : System.Windows.Application
         MainWindow = window;
         window.Show();
         StartForegroundWatch();
+        SingleInstance.Listen(() => Dispatcher.BeginInvoke(() => ActivateExisting()));
 
         if (ModelLocator.IsInstalled())
         {
@@ -148,6 +156,20 @@ public partial class App : System.Windows.Application
             var hwnd = new WindowInteropHelper(_trayMenu).Handle;
             if (hwnd != IntPtr.Zero)
                 yield return hwnd;
+        }
+    }
+
+    private void ActivateExisting()
+    {
+        if (_bar is null)
+            return;
+
+        _bar.Show();
+        _bar.NotifyAlreadyRunning();
+        if (_settingsWindow is not null)
+        {
+            _settingsWindow.Show();
+            _settingsWindow.Activate();
         }
     }
 
@@ -233,6 +255,7 @@ public partial class App : System.Windows.Application
         _tray = null;
         _asr?.Dispose();
         _http?.Dispose();
+        SingleInstance.Release();
         base.OnExit(e);
     }
 }

@@ -91,11 +91,11 @@
 
         <Grid Grid.Column="1">
           <Grid.RowDefinitions>
-            <RowDefinition Height="76" />
+            <RowDefinition Height="56" />
             <RowDefinition Height="*" />
           </Grid.RowDefinitions>
 
-          <DockPanel Grid.Row="0" Margin="8,18,16,0" MouseLeftButtonDown="OnChromeDrag">
+          <DockPanel Grid.Row="0" Margin="8,12,16,0" MouseLeftButtonDown="OnChromeDrag">
             <Button x:Name="CloseButton"
                     DockPanel.Dock="Right"
                     Style="{StaticResource GrokIconButton}"
@@ -116,7 +116,7 @@
             </Button>
             <StackPanel VerticalAlignment="Top" Margin="24,0,0,0">
               <TextBlock x:Name="PageTitle"
-                         FontSize="26"
+                         FontSize="22"
                          FontWeight="Bold"
                          Foreground="{DynamicResource TextPrimary}" />
               <Rectangle x:Name="TitleRule"
@@ -126,18 +126,18 @@
                          RadiusY="1"
                          Fill="{DynamicResource Accent}"
                          HorizontalAlignment="Left"
-                         Margin="0,10,0,0" />
+                         Margin="0,6,0,0" />
             </StackPanel>
           </DockPanel>
 
-          <Grid Grid.Row="1" Margin="32,4,32,32">
+          <Grid Grid.Row="1" Margin="28,0,28,20">
             <ScrollViewer x:Name="GeneralPage"
                           VerticalScrollBarVisibility="Hidden"
                           HorizontalScrollBarVisibility="Disabled">
               <StackPanel>
                 <Border Style="{StaticResource SettingRow}">
                   <StackPanel>
-                    <DockPanel MinHeight="28">
+                    <DockPanel MinHeight="24">
                       <ComboBox x:Name="LanguageCombo"
                                 DockPanel.Dock="Right"
                                 Width="168"
@@ -148,12 +148,12 @@
                                  FontSize="15"
                                  VerticalAlignment="Center" />
                     </DockPanel>
-                    <Rectangle Style="{StaticResource Hairline}" Margin="0,18,0,0" />
+                    <Rectangle Style="{StaticResource Hairline}" Margin="0,10,0,0" />
                   </StackPanel>
                 </Border>
                 <Border Style="{StaticResource SettingRow}">
                   <StackPanel>
-                    <DockPanel MinHeight="28">
+                    <DockPanel MinHeight="24">
                       <ComboBox x:Name="AsrLanguageCombo"
                                 DockPanel.Dock="Right"
                                 Width="168"
@@ -164,24 +164,24 @@
                                  FontSize="15"
                                  VerticalAlignment="Center" />
                     </DockPanel>
-                    <Rectangle Style="{StaticResource Hairline}" Margin="0,18,0,0" />
+                    <Rectangle Style="{StaticResource Hairline}" Margin="0,10,0,0" />
                   </StackPanel>
                 </Border>
                 <Border Style="{StaticResource SettingRow}">
                   <StackPanel>
-                    <DockPanel MinHeight="28">
+                    <DockPanel MinHeight="24">
                       <WrapPanel x:Name="SkinList" DockPanel.Dock="Right" VerticalAlignment="Center" />
                       <TextBlock x:Name="SkinLabel"
                                  Foreground="{DynamicResource TextPrimary}"
                                  FontSize="15"
                                  VerticalAlignment="Center" />
                     </DockPanel>
-                    <Rectangle Style="{StaticResource Hairline}" Margin="0,18,0,0" />
+                    <Rectangle Style="{StaticResource Hairline}" Margin="0,10,0,0" />
                   </StackPanel>
                 </Border>
                 <Border Style="{StaticResource SettingRow}">
                   <StackPanel>
-                    <DockPanel MinHeight="28">
+                    <DockPanel MinHeight="24">
                       <CheckBox x:Name="AutoPunctuationToggle"
                                 Style="{StaticResource SwitchCheckBox}"
                                 DockPanel.Dock="Right"
@@ -193,12 +193,12 @@
                                  FontSize="15"
                                  VerticalAlignment="Center" />
                     </DockPanel>
-                    <Rectangle Style="{StaticResource Hairline}" Margin="0,18,0,0" />
+                    <Rectangle Style="{StaticResource Hairline}" Margin="0,10,0,0" />
                   </StackPanel>
                 </Border>
                 <Border Style="{StaticResource SettingRow}">
                   <StackPanel>
-                    <DockPanel MinHeight="28">
+                    <DockPanel MinHeight="24">
                       <TextBlock x:Name="HoldHotkeyBox"
                                  DockPanel.Dock="Right"
                                  Foreground="{DynamicResource TextSecondary}"
@@ -210,12 +210,12 @@
                                  FontSize="15"
                                  VerticalAlignment="Center" />
                     </DockPanel>
-                    <Rectangle Style="{StaticResource Hairline}" Margin="0,18,0,0" />
+                    <Rectangle Style="{StaticResource Hairline}" Margin="0,10,0,0" />
                   </StackPanel>
                 </Border>
                 <Border Style="{StaticResource SettingRow}">
                   <StackPanel>
-                    <DockPanel MinHeight="28">
+                    <DockPanel MinHeight="24">
                       <CheckBox x:Name="DefaultAiInputToggle"
                                 Style="{StaticResource SwitchCheckBox}"
                                 DockPanel.Dock="Right"
@@ -231,7 +231,7 @@
                                Foreground="{DynamicResource TextSecondary}"
                                FontSize="12"
                                TextWrapping="Wrap"
-                               Margin="0,8,56,0" />
+                               Margin="0,4,48,0" />
                   </StackPanel>
                 </Border>
               </StackPanel>

@@ -43,7 +43,7 @@
 
 ## 和 Dictto 的差别
 
-Dictto 依赖云端 ASR 且需要密钥才能打字，而我的 otoink 则完全在本地进行识别。我向 Dictto 的交互设计汲取了不少灵感（比如变形胶囊组件、点击说话以及独立的设置窗口），并在学习借鉴中打造了现在的体验。（Dictto 采用 AGPL-3.0 协议开源）。
+Dictto ([dictto-app/dictto](https://github.com/dictto-app/dictto))依赖云端 ASR 且需要密钥才能打字，而我的 otoink 则完全在本地进行识别。我向 Dictto 的交互设计汲取了不少灵感（比如变形胶囊组件、点击说话以及独立的设置窗口），并在学习借鉴中打造了现在的体验。（Dictto 采用 AGPL-3.0 协议开源）。
 ## 第一次能用
 
 发布物是一个文件夹：`otoink.exe` 旁边必须有

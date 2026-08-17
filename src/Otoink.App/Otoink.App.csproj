@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-    <ApplicationIcon />
+    <ApplicationIcon>Assets\otoink.ico</ApplicationIcon>
     <AssemblyName>otoink</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
@@ -19,5 +19,18 @@
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="org.k2fsa.sherpa.onnx" Version="1.13.5" />
     <PackageReference Include="SharpCompress" Version="0.38.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\otoink-logo.jpg" />
+    <Content Include="Assets\otoink.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)..\..\models\sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17\tokens.txt')">
+    <Content Include="$(MSBuildThisFileDirectory)..\..\models\sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17\**\*.*"
+             Exclude="$(MSBuildThisFileDirectory)..\..\models\sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17\model.onnx">
+      <Link>models\sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

@@ -6,6 +6,7 @@ namespace Otoink.App.Asr;
 public sealed class SenseVoiceEngine : IAsrEngine, IDisposable
 {
     private readonly Func<AppSettings> _settings;
+    private readonly object _gate = new();
     private OfflineRecognizer? _recognizer;
     private bool? _autoPunctuation;
 
@@ -16,12 +17,27 @@ public sealed class SenseVoiceEngine : IAsrEngine, IDisposable
         return Task.Run(() =>
         {
             cancellationToken.ThrowIfCancellationRequested();
+            lock (_gate)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                EnsureRecognizer();
+                using var stream = _recognizer!.CreateStream();
+                stream.AcceptWaveform(sampleRate, samples);
+                _recognizer.Decode(stream);
+                return stream.Result.Text ?? "";
+            }
+        }, cancellationToken);
+    }
+
+    public void Warmup()
+    {
+        lock (_gate)
+        {
             EnsureRecognizer();
             using var stream = _recognizer!.CreateStream();
-            stream.AcceptWaveform(sampleRate, samples);
+            stream.AcceptWaveform(16000, new float[16000]);
             _recognizer.Decode(stream);
-            return stream.Result.Text ?? "";
-        }, cancellationToken);
+        }
     }
 
     private void EnsureRecognizer()
@@ -34,7 +50,7 @@ public sealed class SenseVoiceEngine : IAsrEngine, IDisposable
         _recognizer = null;
 
         if (!ModelLocator.IsInstalled())
-            throw new InvalidOperationException("SenseVoice 模型未安装");
+            throw new InvalidOperationException("model-missing");
 
         var config = new OfflineRecognizerConfig();
         config.FeatConfig.SampleRate = 16000;
@@ -42,7 +58,7 @@ public sealed class SenseVoiceEngine : IAsrEngine, IDisposable
         config.ModelConfig.Tokens = ModelLocator.Tokens;
         config.ModelConfig.SenseVoice.Model = ModelLocator.ResolveModelPath();
         config.ModelConfig.SenseVoice.UseInverseTextNormalization = autoPunctuation ? 1 : 0;
-        config.ModelConfig.NumThreads = Math.Clamp(Environment.ProcessorCount / 2, 1, 4);
+        config.ModelConfig.NumThreads = Math.Clamp(Environment.ProcessorCount, 1, 4);
         config.DecodingMethod = "greedy_search";
 
         _recognizer = new OfflineRecognizer(config);
@@ -51,7 +67,10 @@ public sealed class SenseVoiceEngine : IAsrEngine, IDisposable
 
     public void Dispose()
     {
-        _recognizer?.Dispose();
-        _recognizer = null;
+        lock (_gate)
+        {
+            _recognizer?.Dispose();
+            _recognizer = null;
+        }
     }
 }

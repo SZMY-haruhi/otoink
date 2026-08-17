@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Bar.IdleTooltip" xml:space="preserve">
+    <value>点击录音</value>
+  </data>
+  <data name="Bar.Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Bar.Stop" xml:space="preserve">
+    <value>停止并出字</value>
+  </data>
+  <data name="Toast.MissingModel" xml:space="preserve">
+    <value>应用目录缺少模型</value>
+  </data>
+  <data name="Toast.FocusFirst" xml:space="preserve">
+    <value>请选择输入窗口</value>
+  </data>
+  <data name="Toast.NeedApiKey" xml:space="preserve">
+    <value>请先在设置里填写 API Key</value>
+  </data>
+  <data name="Toast.WarmingUp" xml:space="preserve">
+    <value>正在预热本地引擎…</value>
+  </data>
+  <data name="Toast.Ready" xml:space="preserve">
+    <value>本地识别已就绪</value>
+  </data>
+  <data name="Toast.EngineNotReady" xml:space="preserve">
+    <value>本地引擎未就绪</value>
+  </data>
+  <data name="Toast.Preparing" xml:space="preserve">
+    <value>正在准备本地引擎…</value>
+  </data>
+  <data name="Tray.Settings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="Tray.Exit" xml:space="preserve">
+    <value>退出</value>
+  </data>
+  <data name="Settings.Title" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="Settings.TabGeneral" xml:space="preserve">
+    <value>通用</value>
+  </data>
+  <data name="Settings.TabAudio" xml:space="preserve">
+    <value>音频</value>
+  </data>
+  <data name="Settings.TabApi" xml:space="preserve">
+    <value>API</value>
+  </data>
+  <data name="Settings.TabHistory" xml:space="preserve">
+    <value>记录</value>
+  </data>
+  <data name="Settings.Language" xml:space="preserve">
+    <value>界面语言</value>
+  </data>
+  <data name="Settings.AutoPunctuation" xml:space="preserve">
+    <value>自动标点符号</value>
+  </data>
+  <data name="Settings.HoldHotkey" xml:space="preserve">
+    <value>按住热键</value>
+  </data>
+  <data name="Settings.HoldHotkeyHint" xml:space="preserve">
+    <value>当前：Ctrl（按住说话）</value>
+  </data>
+  <data name="Settings.AutoPolish" xml:space="preserve">
+    <value>说完后自动润色</value>
+  </data>
+  <data name="Settings.AutoPolishHint" xml:space="preserve">
+    <value>需在 API 页填写 Key</value>
+  </data>
+  <data name="Settings.Microphone" xml:space="preserve">
+    <value>麦克风</value>
+  </data>
+  <data name="Settings.AudioHint" xml:space="preserve">
+    <value>选择录入用的麦克风。打开本页时会显示实时音量。</value>
+  </data>
+  <data name="Settings.MicRefresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="Settings.MicLevel" xml:space="preserve">
+    <value>输入电平</value>
+  </data>
+  <data name="Settings.MicFormat" xml:space="preserve">
+    <value>识别固定为 16 kHz 单声道。对麦克风说话即可看到电平。</value>
+  </data>
+  <data name="Settings.MicBusy" xml:space="preserve">
+    <value>无法监听该设备，可能正在录音或被占用。</value>
+  </data>
+  <data name="Settings.ApiHint" xml:space="preserve">
+    <value>Key 仅用于润色，可自定义 Prompt</value>
+  </data>
+  <data name="Settings.ApiHintOpenAi" xml:space="preserve">
+    <value>走 OpenAI Chat Completions。DeepSeek、Groq、硅基流动等兼容接口可直接填地址。</value>
+  </data>
+  <data name="Settings.ApiHintAnthropic" xml:space="preserve">
+    <value>走 Anthropic Messages API。官方地址为 api.anthropic.com，使用 x-api-key。</value>
+  </data>
+  <data name="Settings.ApiProvider" xml:space="preserve">
+    <value>接口类型</value>
+  </data>
+  <data name="Settings.ApiProviderOpenAi" xml:space="preserve">
+    <value>OpenAI 兼容</value>
+  </data>
+  <data name="Settings.ApiProviderAnthropic" xml:space="preserve">
+    <value>Anthropic</value>
+  </data>
+  <data name="Settings.ApiBaseUrl" xml:space="preserve">
+    <value>接口地址</value>
+  </data>
+  <data name="Settings.ApiKey" xml:space="preserve">
+    <value>API Key</value>
+  </data>
+  <data name="Settings.ApiModel" xml:space="preserve">
+    <value>模型</value>
+  </data>
+  <data name="Settings.ApiPrompt" xml:space="preserve">
+    <value>Prompt</value>
+  </data>
+  <data name="Settings.ApiSave" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Settings.ApiSaved" xml:space="preserve">
+    <value>已保存</value>
+  </data>
+  <data name="Settings.ApiTest" xml:space="preserve">
+    <value>测试连接</value>
+  </data>
+  <data name="Settings.ApiTesting" xml:space="preserve">
+    <value>测试中…</value>
+  </data>
+  <data name="Settings.ApiTestOk" xml:space="preserve">
+    <value>连接正常</value>
+  </data>
+  <data name="Settings.ApiTestNoKey" xml:space="preserve">
+    <value>请先填写 API Key</value>
+  </data>
+  <data name="Settings.ApiTestTimeout" xml:space="preserve">
+    <value>连接超时</value>
+  </data>
+  <data name="Settings.ApiTestFailDetail" xml:space="preserve">
+    <value>连接失败：{0}</value>
+  </data>
+  <data name="Settings.ApiRestore" xml:space="preserve">
+    <value>恢复默认 Prompt</value>
+  </data>
+  <data name="History.Optimize" xml:space="preserve">
+    <value>AI 优化</value>
+  </data>
+  <data name="History.Optimizing" xml:space="preserve">
+    <value>优化中…</value>
+  </data>
+  <data name="History.Insert" xml:space="preserve">
+    <value>录入</value>
+  </data>
+  <data name="History.Inserted" xml:space="preserve">
+    <value>已录入</value>
+  </data>
+  <data name="History.AiPrefix" xml:space="preserve">
+    <value>AI：</value>
+  </data>
+  <data name="History.EmptyTitle" xml:space="preserve">
+    <value>还没有记录</value>
+  </data>
+  <data name="History.EmptyBody" xml:space="preserve">
+    <value>录入失败时可以回来重试。只留最近 10 条，关掉软件就清空。</value>
+  </data>
+  <data name="Lang.zhHans" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="Lang.en" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="Settings.Skin" xml:space="preserve">
+    <value>皮肤</value>
+  </data>
+  <data name="Skin.void" xml:space="preserve">
+    <value>虚空</value>
+  </data>
+  <data name="Skin.ember" xml:space="preserve">
+    <value>余烬</value>
+  </data>
+  <data name="Skin.ion" xml:space="preserve">
+    <value>电离</value>
+  </data>
+  <data name="Skin.lunar" xml:space="preserve">
+    <value>月岩</value>
+  </data>
+</root>

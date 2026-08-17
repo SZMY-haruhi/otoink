@@ -1,4 +1,5 @@
 using NAudio.Wave;
+using Otoink.Core;
 
 namespace Otoink.App.Audio;
 
@@ -14,6 +15,7 @@ public sealed class MicrophoneRecorder : IDisposable
     public bool IsRecording { get; private set; }
 
     public event Action<float[], int>? Stopped;
+    public event Action<float>? Level;
 
     public void Start(int deviceNumber)
     {
@@ -28,7 +30,7 @@ public sealed class MicrophoneRecorder : IDisposable
         {
             DeviceNumber = deviceNumber,
             WaveFormat = new WaveFormat(SampleRateHz, 16, 1),
-            BufferMilliseconds = 50
+            BufferMilliseconds = 20
         };
         waveIn.DataAvailable += OnDataAvailable;
         waveIn.RecordingStopped += OnWaveInRecordingStopped;
@@ -67,6 +69,23 @@ public sealed class MicrophoneRecorder : IDisposable
             for (var i = 0; i < e.BytesRecorded; i++)
                 _buffer.Add(e.Buffer[i]);
         }
+
+        var peak = 0f;
+        var sumSq = 0d;
+        var count = 0;
+        var limit = e.BytesRecorded - 1;
+        for (var i = 0; i < limit; i += 2)
+        {
+            var sample = BitConverter.ToInt16(e.Buffer, i) / 32768f;
+            var abs = Math.Abs(sample);
+            if (abs > peak)
+                peak = abs;
+            sumSq += sample * sample;
+            count++;
+        }
+
+        var rms = count == 0 ? 0f : (float)Math.Sqrt(sumSq / count);
+        Level?.Invoke(AudioVu.FromPeakAndRms(peak, rms));
     }
 
     private void OnWaveInRecordingStopped(object? sender, StoppedEventArgs e)

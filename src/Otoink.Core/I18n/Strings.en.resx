@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Bar.IdleTooltip" xml:space="preserve">
+    <value>Click to record</value>
+  </data>
+  <data name="Bar.Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Bar.Stop" xml:space="preserve">
+    <value>Stop and type</value>
+  </data>
+  <data name="Toast.MissingModel" xml:space="preserve">
+    <value>Model missing from the app folder</value>
+  </data>
+  <data name="Toast.FocusFirst" xml:space="preserve">
+    <value>Select an input window</value>
+  </data>
+  <data name="Toast.NeedApiKey" xml:space="preserve">
+    <value>Add an API key in Settings to polish</value>
+  </data>
+  <data name="Toast.WarmingUp" xml:space="preserve">
+    <value>Warming up the local engine…</value>
+  </data>
+  <data name="Toast.Ready" xml:space="preserve">
+    <value>Local recognition is ready</value>
+  </data>
+  <data name="Toast.EngineNotReady" xml:space="preserve">
+    <value>Local engine is not ready</value>
+  </data>
+  <data name="Toast.Preparing" xml:space="preserve">
+    <value>Preparing the local engine…</value>
+  </data>
+  <data name="Tray.Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Tray.Exit" xml:space="preserve">
+    <value>Quit</value>
+  </data>
+  <data name="Settings.Title" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Settings.TabGeneral" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Settings.TabAudio" xml:space="preserve">
+    <value>Audio</value>
+  </data>
+  <data name="Settings.TabApi" xml:space="preserve">
+    <value>API</value>
+  </data>
+  <data name="Settings.TabHistory" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="Settings.Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Settings.AutoPunctuation" xml:space="preserve">
+    <value>Auto punctuation</value>
+  </data>
+  <data name="Settings.HoldHotkey" xml:space="preserve">
+    <value>Hold hotkey</value>
+  </data>
+  <data name="Settings.HoldHotkeyHint" xml:space="preserve">
+    <value>Current: Ctrl (hold to speak)</value>
+  </data>
+  <data name="Settings.AutoPolish" xml:space="preserve">
+    <value>Polish after speaking</value>
+  </data>
+  <data name="Settings.AutoPolishHint" xml:space="preserve">
+    <value>Requires an API key on the API page</value>
+  </data>
+  <data name="Settings.Microphone" xml:space="preserve">
+    <value>Microphone</value>
+  </data>
+  <data name="Settings.AudioHint" xml:space="preserve">
+    <value>Choose the microphone used for dictation. This page shows live input level.</value>
+  </data>
+  <data name="Settings.MicRefresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Settings.MicLevel" xml:space="preserve">
+    <value>Input level</value>
+  </data>
+  <data name="Settings.MicFormat" xml:space="preserve">
+    <value>Recognition uses 16 kHz mono. Speak to see the meter.</value>
+  </data>
+  <data name="Settings.MicBusy" xml:space="preserve">
+    <value>Cannot monitor this device. It may be in use.</value>
+  </data>
+  <data name="Settings.ApiHint" xml:space="preserve">
+    <value>Dictation works without a key. Prompt is sent when polishing.</value>
+  </data>
+  <data name="Settings.ApiHintOpenAi" xml:space="preserve">
+    <value>Uses OpenAI Chat Completions. DeepSeek, Groq, and other compatible endpoints work with a base URL.</value>
+  </data>
+  <data name="Settings.ApiHintAnthropic" xml:space="preserve">
+    <value>Uses the Anthropic Messages API at api.anthropic.com with x-api-key.</value>
+  </data>
+  <data name="Settings.ApiProvider" xml:space="preserve">
+    <value>Provider</value>
+  </data>
+  <data name="Settings.ApiProviderOpenAi" xml:space="preserve">
+    <value>OpenAI compatible</value>
+  </data>
+  <data name="Settings.ApiProviderAnthropic" xml:space="preserve">
+    <value>Anthropic</value>
+  </data>
+  <data name="Settings.ApiBaseUrl" xml:space="preserve">
+    <value>Base URL</value>
+  </data>
+  <data name="Settings.ApiKey" xml:space="preserve">
+    <value>API Key</value>
+  </data>
+  <data name="Settings.ApiModel" xml:space="preserve">
+    <value>Model</value>
+  </data>
+  <data name="Settings.ApiPrompt" xml:space="preserve">
+    <value>Prompt</value>
+  </data>
+  <data name="Settings.ApiSave" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Settings.ApiSaved" xml:space="preserve">
+    <value>Saved</value>
+  </data>
+  <data name="Settings.ApiTest" xml:space="preserve">
+    <value>Test connection</value>
+  </data>
+  <data name="Settings.ApiTesting" xml:space="preserve">
+    <value>Testing…</value>
+  </data>
+  <data name="Settings.ApiTestOk" xml:space="preserve">
+    <value>Connected</value>
+  </data>
+  <data name="Settings.ApiTestNoKey" xml:space="preserve">
+    <value>Enter an API key first</value>
+  </data>
+  <data name="Settings.ApiTestTimeout" xml:space="preserve">
+    <value>Connection timed out</value>
+  </data>
+  <data name="Settings.ApiTestFailDetail" xml:space="preserve">
+    <value>Failed: {0}</value>
+  </data>
+  <data name="Settings.ApiRestore" xml:space="preserve">
+    <value>Restore default prompt</value>
+  </data>
+  <data name="History.Optimize" xml:space="preserve">
+    <value>Polish</value>
+  </data>
+  <data name="History.Optimizing" xml:space="preserve">
+    <value>Polishing…</value>
+  </data>
+  <data name="History.Insert" xml:space="preserve">
+    <value>Insert</value>
+  </data>
+  <data name="History.Inserted" xml:space="preserve">
+    <value>Inserted</value>
+  </data>
+  <data name="History.AiPrefix" xml:space="preserve">
+    <value>AI: </value>
+  </data>
+  <data name="History.EmptyTitle" xml:space="preserve">
+    <value>No history yet</value>
+  </data>
+  <data name="History.EmptyBody" xml:space="preserve">
+    <value>Use this to retry a missed insert. Last 10 only; cleared when the app quits.</value>
+  </data>
+  <data name="Lang.zhHans" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="Lang.en" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="Settings.Skin" xml:space="preserve">
+    <value>Skin</value>
+  </data>
+  <data name="Skin.void" xml:space="preserve">
+    <value>Void</value>
+  </data>
+  <data name="Skin.ember" xml:space="preserve">
+    <value>Ember</value>
+  </data>
+  <data name="Skin.ion" xml:space="preserve">
+    <value>Ion</value>
+  </data>
+  <data name="Skin.lunar" xml:space="preserve">
+    <value>Lunar</value>
+  </data>
+</root>

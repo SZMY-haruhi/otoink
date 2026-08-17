@@ -1,11 +1,15 @@
 using System.IO;
 using System.Net.Http;
 using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Threading;
 using Otoink.App.Asr;
+using Otoink.App.Theme;
 using Otoink.App.Tray;
 using Otoink.App.Win32;
 using Otoink.Core;
 using Otoink.Core.Ai;
+using Otoink.Core.I18n;
 
 namespace Otoink.App;
 
@@ -20,11 +24,19 @@ public partial class App : System.Windows.Application
     private HttpClient? _http;
     private SenseVoiceEngine? _asr;
     private NotifyIconService? _tray;
-    private int _modelInstallInFlight;
+    private MainWindow? _bar;
+    private SettingsWindow? _settingsWindow;
+    private TrayMenuWindow? _trayMenu;
+    private DispatcherTimer? _foregroundWatch;
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        DispatcherUnhandledException += (_, args) =>
+        {
+            args.Handled = true;
+            _bar?.ShowToast(args.Exception.Message);
+        };
 
         var path = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -36,47 +48,187 @@ public partial class App : System.Windows.Application
 
         if (string.IsNullOrWhiteSpace(Settings.HoldHotkey))
             Settings.HoldHotkey = "RightCtrl";
+        Settings.UiLocale = Loc.Normalize(Settings.UiLocale);
+        Loc.Apply(Settings.UiLocale);
+        Settings.UiSkin = UiTheme.Normalize(Settings.UiSkin);
+        UiTheme.Apply(Settings.UiSkin);
 
         _http = new HttpClient();
-        var ai = new OpenAiCompatibleCorrector(_http, () => Settings);
+        var ai = new LlmCorrector(
+            new OpenAiCompatibleCorrector(_http, () => Settings),
+            new AnthropicCorrector(_http, () => Settings),
+            () => Settings);
         _asr = new SenseVoiceEngine(() => Settings);
         Injector = new UnicodeInjector();
         TranscriptStore = new TranscriptStore();
         Orchestrator = new DictationOrchestrator(_asr, ai, Injector, TranscriptStore, () => Settings);
 
         _tray = new NotifyIconService();
-        var window = new MainWindow(SettingsStore, Settings, TranscriptStore, Orchestrator, Injector, _tray);
-        MainWindow = window;
-        window.ModelDownloadRetryRequested += () => _ = EnsureModelInstalledAsync(window);
-        window.Show();
+        _tray.SettingsRequested += () => Dispatcher.BeginInvoke(ShowSettings);
+        _tray.MenuRequested += point => Dispatcher.BeginInvoke(() => ShowTrayMenu(point.X, point.Y));
 
-        if (!ModelLocator.IsInstalled())
-            _ = EnsureModelInstalledAsync(window);
+        var preview = e.Args.Any(a =>
+            string.Equals(a, "--preview", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(a, "--preview-export", StringComparison.OrdinalIgnoreCase));
+        var export = e.Args.Any(a =>
+            string.Equals(a, "--preview-export", StringComparison.OrdinalIgnoreCase));
+
+        if (preview)
+        {
+            TranscriptStore.Add("喂能听到吗");
+            TranscriptStore.Add("喂喂喂喂喂。");
+        }
+
+        var window = new MainWindow(Settings, Orchestrator, Injector, CollectIgnoreHwnds, previewMode: preview);
+        _bar = window;
+        window.OpenSettings = ShowSettings;
+        window.TranscriptChanged += () => _settingsWindow?.RefreshHistory();
+
+        if (preview)
+        {
+            var studio = new Design.DesignStudio(window, ResolveShotDir()) { ExportAndExit = export };
+            MainWindow = studio;
+            studio.Show();
+            window.Show();
+            return;
+        }
+
+        MainWindow = window;
+        window.Show();
+        StartForegroundWatch();
+
+        if (ModelLocator.IsInstalled())
+        {
+            window.BeginWarmup();
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    WarmupAsr();
+                    window.EndWarmup(success: true);
+                }
+                catch (Exception ex)
+                {
+                    window.EndWarmup(success: false, error: ex.Message);
+                }
+            });
+        }
+        else
+            window.NotifyModelMissing();
     }
 
-    private async Task EnsureModelInstalledAsync(MainWindow window)
+    private IEnumerable<IntPtr> CollectIgnoreHwnds()
     {
-        if (Interlocked.CompareExchange(ref _modelInstallInFlight, 1, 0) != 0)
-            return;
+        if (_trayMenu is not null)
+        {
+            var hwnd = new WindowInteropHelper(_trayMenu).Handle;
+            if (hwnd != IntPtr.Zero)
+                yield return hwnd;
+        }
+    }
 
-        window.BeginModelDownload();
+    private IEnumerable<IntPtr> CollectOurWindows()
+    {
+        if (_bar is not null)
+        {
+            var hwnd = new WindowInteropHelper(_bar).Handle;
+            if (hwnd != IntPtr.Zero)
+                yield return hwnd;
+        }
+
+        if (_settingsWindow is not null)
+        {
+            var hwnd = _settingsWindow.Hwnd;
+            if (hwnd != IntPtr.Zero)
+                yield return hwnd;
+        }
+
+        if (_trayMenu is not null)
+        {
+            var hwnd = new WindowInteropHelper(_trayMenu).Handle;
+            if (hwnd != IntPtr.Zero)
+                yield return hwnd;
+        }
+    }
+
+    private void StartForegroundWatch()
+    {
+        _foregroundWatch = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+        _foregroundWatch.Tick += (_, _) => Injector.RememberExternalForeground(CollectOurWindows());
+        _foregroundWatch.Start();
+    }
+
+    private void ShowSettings()
+    {
         try
         {
-            await ModelDownloader.InstallAsync(_http!).ConfigureAwait(false);
-            window.EndModelDownload(success: true);
+            Injector.RememberExternalForeground(CollectOurWindows());
+            if (_settingsWindow is null)
+            {
+                _settingsWindow = new SettingsWindow(
+                    SettingsStore, Settings, TranscriptStore, Orchestrator, Injector);
+                _settingsWindow.ErrorRaised += message => _bar?.ShowToast(message);
+                _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+            }
+
+            _settingsWindow.Show();
+            _settingsWindow.Activate();
+            _settingsWindow.RefreshHistory();
         }
         catch (Exception ex)
         {
-            window.EndModelDownload(success: false, error: ex.Message);
-        }
-        finally
-        {
-            Interlocked.Exchange(ref _modelInstallInFlight, 0);
+            try
+            {
+                _settingsWindow?.Close();
+            }
+            catch
+            {
+                // Already broken; drop the instance.
+            }
+
+            _settingsWindow = null;
+            _bar?.ShowToast(ex.Message);
         }
     }
 
+    private void ShowTrayMenu(int pixelX, int pixelY)
+    {
+        _trayMenu?.Close();
+        var menu = new TrayMenuWindow();
+        _trayMenu = menu;
+        menu.SettingsChosen += ShowSettings;
+        menu.ExitChosen += () => _bar?.RequestShutdown();
+        menu.Closed += (_, _) =>
+        {
+            if (ReferenceEquals(_trayMenu, menu))
+                _trayMenu = null;
+        };
+        menu.Show();
+        menu.PlaceAtScreenPixels(pixelX, pixelY);
+    }
+
+    private static string ResolveShotDir()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir != null)
+        {
+            if (File.Exists(Path.Combine(dir.FullName, "Otoink.sln")))
+                return Path.Combine(dir.FullName, "design", "shots");
+            dir = dir.Parent;
+        }
+
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "otoink",
+            "shots");
+    }
+
+    private void WarmupAsr() => _asr?.Warmup();
+
     protected override void OnExit(ExitEventArgs e)
     {
+        _foregroundWatch?.Stop();
+        _foregroundWatch = null;
         _tray?.Dispose();
         _tray = null;
         _asr?.Dispose();

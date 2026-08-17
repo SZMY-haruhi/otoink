@@ -1,10 +1,13 @@
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.IO;
 using System.Windows.Forms;
 
 namespace Otoink.App.Tray;
 
 /// <summary>
-/// System tray icon for hide/show/exit. Tooltip text is "otoink".
+/// Tray icon. Left-click opens settings; right-click raises a custom menu request.
+/// Tooltip text is "otoink".
 /// </summary>
 public sealed class NotifyIconService : IDisposable
 {
@@ -14,49 +17,79 @@ public sealed class NotifyIconService : IDisposable
 
     public NotifyIconService()
     {
-        var menu = new ContextMenuStrip();
-        menu.Items.Add("显示", null, (_, _) => ShowRequested?.Invoke());
-        menu.Items.Add("退出", null, (_, _) => ExitRequested?.Invoke());
-
         _ownedIcon = CreateTrayIcon();
         _notifyIcon = new NotifyIcon
         {
             Text = "otoink",
             Icon = _ownedIcon,
-            Visible = true,
-            ContextMenuStrip = menu
+            Visible = true
         };
-        _notifyIcon.MouseClick += OnMouseClick;
+        _notifyIcon.MouseUp += OnMouseUp;
     }
 
-    public event Action? ShowRequested;
-    public event Action? ExitRequested;
+    public event Action? SettingsRequested;
+    public event Action<Point>? MenuRequested;
 
-    private void OnMouseClick(object? sender, MouseEventArgs e)
+    private void OnMouseUp(object? sender, MouseEventArgs e)
     {
         if (e.Button == MouseButtons.Left)
-            ShowRequested?.Invoke();
+            SettingsRequested?.Invoke();
+        else if (e.Button == MouseButtons.Right)
+            MenuRequested?.Invoke(Cursor.Position);
     }
 
     private static Icon CreateTrayIcon()
     {
+        try
+        {
+            var icoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "otoink.ico");
+            if (File.Exists(icoPath))
+            {
+                using var file = new Icon(icoPath, 32, 32);
+                return (Icon)file.Clone();
+            }
+
+            var jpgPath = Path.Combine(AppContext.BaseDirectory, "Assets", "otoink-logo.jpg");
+            if (File.Exists(jpgPath))
+                return FromBitmapFile(jpgPath);
+        }
+        catch
+        {
+            // Fall through to the drawn mark.
+        }
+
         using var bmp = new Bitmap(16, 16);
         using (var g = Graphics.FromImage(bmp))
         {
             g.Clear(Color.Transparent);
             using var brush = new SolidBrush(Color.FromArgb(0xE5, 0x39, 0x35));
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
             g.FillEllipse(brush, 1, 1, 14, 14);
-            using var mic = new SolidBrush(Color.White);
-            g.FillRectangle(mic, 7, 4, 2, 5);
-            g.FillEllipse(mic, 6, 8, 4, 3);
-            g.FillRectangle(mic, 7, 11, 2, 2);
         }
 
+        return IconFromBitmap(bmp);
+    }
+
+    private static Icon FromBitmapFile(string path)
+    {
+        using var src = new Bitmap(path);
+        using var bmp = new Bitmap(32, 32);
+        using (var g = Graphics.FromImage(bmp))
+        {
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            g.SmoothingMode = SmoothingMode.HighQuality;
+            g.Clear(Color.Transparent);
+            g.DrawImage(src, 0, 0, 32, 32);
+        }
+
+        return IconFromBitmap(bmp);
+    }
+
+    private static Icon IconFromBitmap(Bitmap bmp)
+    {
         var hIcon = bmp.GetHicon();
         try
         {
-            // Clone so the icon owns its data after DestroyIcon.
             using var temp = Icon.FromHandle(hIcon);
             return (Icon)temp.Clone();
         }
@@ -75,13 +108,12 @@ public sealed class NotifyIconService : IDisposable
             return;
         _disposed = true;
 
-        _notifyIcon.MouseClick -= OnMouseClick;
+        _notifyIcon.MouseUp -= OnMouseUp;
         _notifyIcon.Visible = false;
-        _notifyIcon.ContextMenuStrip?.Dispose();
         _notifyIcon.Dispose();
         _ownedIcon?.Dispose();
         _ownedIcon = null;
-        ShowRequested = null;
-        ExitRequested = null;
+        SettingsRequested = null;
+        MenuRequested = null;
     }
 }

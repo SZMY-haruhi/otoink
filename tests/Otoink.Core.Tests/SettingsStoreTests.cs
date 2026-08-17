@@ -18,7 +18,11 @@ public class SettingsStoreTests
             ApiBaseUrl = "https://api.deepseek.com/v1",
             ApiKey = "sk-test",
             ApiModel = "deepseek-chat",
-            HoldHotkey = "RightCtrl"
+            ApiPrompt = "保持书面语",
+            ApiProvider = "anthropic",
+            HoldHotkey = "RightCtrl",
+            UiLocale = "en",
+            UiSkin = "ion"
         });
 
         var loaded = store.Load();
@@ -28,7 +32,11 @@ public class SettingsStoreTests
         Assert.Equal("https://api.deepseek.com/v1", loaded.ApiBaseUrl);
         Assert.Equal("sk-test", loaded.ApiKey);
         Assert.Equal("deepseek-chat", loaded.ApiModel);
+        Assert.Equal("保持书面语", loaded.ApiPrompt);
+        Assert.Equal("anthropic", loaded.ApiProvider);
         Assert.Equal("RightCtrl", loaded.HoldHotkey);
+        Assert.Equal("en", loaded.UiLocale);
+        Assert.Equal("ion", loaded.UiSkin);
     }
 
     [Fact]
@@ -40,8 +48,12 @@ public class SettingsStoreTests
         Assert.True(loaded.AutoPunctuation);
         Assert.Equal("https://api.deepseek.com/v1", loaded.ApiBaseUrl);
         Assert.Equal("deepseek-chat", loaded.ApiModel);
+        Assert.Equal("", loaded.ApiPrompt);
+        Assert.Equal("openai", loaded.ApiProvider);
         Assert.Equal("RightCtrl", loaded.HoldHotkey);
         Assert.Equal("", loaded.ApiKey);
         Assert.Equal("", loaded.MicrophoneId);
+        Assert.Equal("zh-Hans", loaded.UiLocale);
+        Assert.Equal("void", loaded.UiSkin);
     }
 }

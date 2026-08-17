@@ -1,0 +1,389 @@
+<Window x:Class="Otoink.App.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Width="780"
+        Height="488"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        ShowInTaskbar="True"
+        FontFamily="{StaticResource AppFont}"
+        PreviewKeyDown="OnPreviewKeyDown"
+        SourceInitialized="OnSourceInitialized"
+        Loaded="OnLoaded">
+  <Border x:Name="ShellStroke"
+          CornerRadius="20"
+          Padding="1">
+    <Border x:Name="Shell"
+            CornerRadius="19"
+            BorderThickness="0"
+            Background="#000000">
+    <Grid>
+      <Border x:Name="Heat"
+              CornerRadius="19"
+              IsHitTestVisible="False" />
+
+      <Grid>
+        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="212" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" MouseLeftButtonDown="OnChromeDrag">
+          <Grid>
+            <Rectangle HorizontalAlignment="Right"
+                       Width="1"
+                       IsHitTestVisible="False">
+              <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                  <GradientStop Color="#00FFFFFF" Offset="0" />
+                  <GradientStop Color="#3AFFFFFF" Offset="0.12" />
+                  <GradientStop Color="#18FFFFFF" Offset="0.5" />
+                  <GradientStop Color="#00FFFFFF" Offset="1" />
+                </LinearGradientBrush>
+              </Rectangle.Fill>
+            </Rectangle>
+
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Top"
+                          Orientation="Horizontal"
+                          Margin="16,20,14,22">
+                <Border Width="76"
+                        Height="76"
+                        CornerRadius="18"
+                        VerticalAlignment="Center">
+                  <Border.Background>
+                    <ImageBrush Stretch="UniformToFill">
+                      <ImageBrush.ImageSource>
+                        <BitmapImage UriSource="pack://application:,,,/Assets/otoink-logo.jpg"
+                                     DecodePixelWidth="200"
+                                     CacheOption="OnLoad" />
+                      </ImageBrush.ImageSource>
+                    </ImageBrush>
+                  </Border.Background>
+                </Border>
+                <StackPanel VerticalAlignment="Center" Margin="12,0,0,0">
+                  <TextBlock Text="otoink"
+                             FontSize="20"
+                             FontWeight="SemiBold"
+                             Foreground="{DynamicResource TextPrimary}" />
+                  <Rectangle Width="28"
+                             Height="1.5"
+                             RadiusX="1"
+                             RadiusY="1"
+                             Fill="{DynamicResource Accent}"
+                             HorizontalAlignment="Left"
+                             Margin="0,8,0,0"
+                             Opacity="0.85" />
+                </StackPanel>
+              </StackPanel>
+              <StackPanel Margin="16,0,14,24">
+                <Button x:Name="TabGeneral" Click="OnTabGeneral" Style="{StaticResource GrokNav}" />
+                <Button x:Name="TabAudio" Click="OnTabAudio" Style="{StaticResource GrokNav}" />
+                <Button x:Name="TabApi" Click="OnTabApi" Style="{StaticResource GrokNav}" />
+                <Button x:Name="TabHistory" Click="OnTabHistory" Style="{StaticResource GrokNav}" />
+              </StackPanel>
+            </DockPanel>
+          </Grid>
+        </Border>
+
+        <Grid Grid.Column="1">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="76" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+
+          <DockPanel Grid.Row="0" Margin="8,18,16,0" MouseLeftButtonDown="OnChromeDrag">
+            <Button x:Name="CloseButton"
+                    DockPanel.Dock="Right"
+                    Style="{StaticResource GrokIconButton}"
+                    Width="32"
+                    Height="32"
+                    Click="OnCloseClick"
+                    Cursor="Hand"
+                    VerticalAlignment="Top"
+                    Margin="0,2,4,0">
+              <Path Width="9"
+                    Height="9"
+                    Stretch="Uniform"
+                    Stroke="{DynamicResource TextSecondary}"
+                    StrokeThickness="1.5"
+                    StrokeStartLineCap="Round"
+                    StrokeEndLineCap="Round"
+                    Data="M 0,0 L 10,10 M 10,0 L 0,10" />
+            </Button>
+            <StackPanel VerticalAlignment="Top" Margin="24,0,0,0">
+              <TextBlock x:Name="PageTitle"
+                         FontSize="26"
+                         FontWeight="Bold"
+                         Foreground="{DynamicResource TextPrimary}" />
+              <Rectangle x:Name="TitleRule"
+                         Width="28"
+                         Height="1.5"
+                         RadiusX="1"
+                         RadiusY="1"
+                         Fill="{DynamicResource Accent}"
+                         HorizontalAlignment="Left"
+                         Margin="0,10,0,0" />
+            </StackPanel>
+          </DockPanel>
+
+          <Grid Grid.Row="1" Margin="32,4,32,32">
+            <ScrollViewer x:Name="GeneralPage"
+                          VerticalScrollBarVisibility="Hidden"
+                          HorizontalScrollBarVisibility="Disabled">
+              <StackPanel>
+                <Border Style="{StaticResource SettingRow}">
+                  <StackPanel>
+                    <DockPanel MinHeight="28">
+                      <ComboBox x:Name="LanguageCombo"
+                                DockPanel.Dock="Right"
+                                Width="168"
+                                VerticalAlignment="Center"
+                                SelectionChanged="OnLanguageChanged" />
+                      <TextBlock x:Name="LanguageLabel"
+                                 Foreground="{DynamicResource TextPrimary}"
+                                 FontSize="15"
+                                 VerticalAlignment="Center" />
+                    </DockPanel>
+                    <Rectangle Style="{StaticResource Hairline}" Margin="0,18,0,0" />
+                  </StackPanel>
+                </Border>
+                <Border Style="{StaticResource SettingRow}">
+                  <StackPanel>
+                    <DockPanel MinHeight="28">
+                      <WrapPanel x:Name="SkinList" DockPanel.Dock="Right" VerticalAlignment="Center" />
+                      <TextBlock x:Name="SkinLabel"
+                                 Foreground="{DynamicResource TextPrimary}"
+                                 FontSize="15"
+                                 VerticalAlignment="Center" />
+                    </DockPanel>
+                    <Rectangle Style="{StaticResource Hairline}" Margin="0,18,0,0" />
+                  </StackPanel>
+                </Border>
+                <Border Style="{StaticResource SettingRow}">
+                  <StackPanel>
+                    <DockPanel MinHeight="28">
+                      <CheckBox x:Name="AutoPunctuationToggle"
+                                Style="{StaticResource SwitchCheckBox}"
+                                DockPanel.Dock="Right"
+                                VerticalAlignment="Center"
+                                Checked="OnAutoPunctuationChanged"
+                                Unchecked="OnAutoPunctuationChanged" />
+                      <TextBlock x:Name="AutoPunctuationLabel"
+                                 Foreground="{DynamicResource TextPrimary}"
+                                 FontSize="15"
+                                 VerticalAlignment="Center" />
+                    </DockPanel>
+                    <Rectangle Style="{StaticResource Hairline}" Margin="0,18,0,0" />
+                  </StackPanel>
+                </Border>
+                <Border Style="{StaticResource SettingRow}">
+                  <StackPanel>
+                    <DockPanel MinHeight="28">
+                      <TextBlock x:Name="HoldHotkeyBox"
+                                 DockPanel.Dock="Right"
+                                 Foreground="{DynamicResource TextSecondary}"
+                                 FontSize="13"
+                                 TextAlignment="Right"
+                                 VerticalAlignment="Center" />
+                      <TextBlock x:Name="HoldHotkeyLabel"
+                                 Foreground="{DynamicResource TextPrimary}"
+                                 FontSize="15"
+                                 VerticalAlignment="Center" />
+                    </DockPanel>
+                    <Rectangle Style="{StaticResource Hairline}" Margin="0,18,0,0" />
+                  </StackPanel>
+                </Border>
+                <Border Style="{StaticResource SettingRow}">
+                  <StackPanel>
+                    <DockPanel MinHeight="28">
+                      <CheckBox x:Name="DefaultAiInputToggle"
+                                Style="{StaticResource SwitchCheckBox}"
+                                DockPanel.Dock="Right"
+                                VerticalAlignment="Center"
+                                Checked="OnDefaultAiInputChanged"
+                                Unchecked="OnDefaultAiInputChanged" />
+                      <TextBlock x:Name="AutoPolishLabel"
+                                 Foreground="{DynamicResource TextPrimary}"
+                                 FontSize="15"
+                                 VerticalAlignment="Center" />
+                    </DockPanel>
+                    <TextBlock x:Name="AutoPolishHint"
+                               Foreground="{DynamicResource TextSecondary}"
+                               FontSize="12"
+                               TextWrapping="Wrap"
+                               Margin="0,8,56,0" />
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </ScrollViewer>
+
+            <StackPanel x:Name="AudioPage" Visibility="Collapsed">
+              <TextBlock x:Name="AudioHint"
+                         Foreground="{DynamicResource TextSecondary}"
+                         FontSize="12"
+                         TextWrapping="Wrap"
+                         Margin="0,0,0,18" />
+              <DockPanel MinHeight="36" Margin="0,0,0,18">
+                <Button x:Name="MicRefreshButton"
+                        DockPanel.Dock="Right"
+                        Style="{StaticResource GhostButton}"
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center"
+                        Click="OnMicRefreshClick" />
+                <ComboBox x:Name="MicrophoneCombo"
+                          VerticalAlignment="Center"
+                          SelectionChanged="OnMicrophoneSelectionChanged" />
+              </DockPanel>
+              <TextBlock x:Name="MicLevelLabel"
+                         Foreground="{DynamicResource TextSecondary}"
+                         FontSize="12"
+                         Margin="0,0,0,10" />
+              <Border x:Name="MicLevelTrack"
+                      Height="10"
+                      CornerRadius="5"
+                      Background="#18FFFFFF"
+                      ClipToBounds="True">
+                <Border x:Name="MicLevelFill"
+                        Width="0"
+                        HorizontalAlignment="Left"
+                        CornerRadius="5"
+                        Background="{DynamicResource Accent}" />
+              </Border>
+              <TextBlock x:Name="MicFormatHint"
+                         Foreground="{DynamicResource TextSecondary}"
+                         FontSize="12"
+                         Margin="0,14,0,0"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+
+            <Grid x:Name="ApiPage" Visibility="Collapsed">
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+              </Grid.RowDefinitions>
+
+              <TextBlock x:Name="ApiHint"
+                         Foreground="{DynamicResource TextSecondary}"
+                         FontSize="12"
+                         TextWrapping="Wrap"
+                         Margin="0,0,0,10" />
+
+              <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto" />
+                  <RowDefinition Height="Auto" />
+                  <RowDefinition Height="Auto" />
+                  <RowDefinition Height="*" MinHeight="56" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,0,6">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="14" />
+                    <ColumnDefinition Width="Auto" MinWidth="40" />
+                    <ColumnDefinition Width="1.1*" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="ApiProviderLabel"
+                             Foreground="{DynamicResource TextSecondary}"
+                             FontSize="12"
+                             VerticalAlignment="Center"
+                             Margin="0,0,8,0" />
+                  <ComboBox x:Name="ApiProviderCombo"
+                            Grid.Column="1"
+                            SelectionChanged="OnApiProviderChanged" />
+                  <TextBlock x:Name="ApiModelLabel"
+                             Grid.Column="3"
+                             Foreground="{DynamicResource TextSecondary}"
+                             FontSize="12"
+                             VerticalAlignment="Center"
+                             Margin="0,0,8,0" />
+                  <TextBox x:Name="ApiModelBox" Grid.Column="4" />
+                </Grid>
+
+                <Grid Grid.Row="1" Margin="0,0,0,6">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="ApiBaseUrlLabel"
+                             Foreground="{DynamicResource TextSecondary}"
+                             FontSize="12"
+                             VerticalAlignment="Center"
+                             Margin="0,0,8,0" />
+                  <TextBox x:Name="ApiBaseUrlBox" Grid.Column="1" />
+                </Grid>
+
+                <Grid Grid.Row="2" Margin="0,0,0,8">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="ApiKeyLabel"
+                             Foreground="{DynamicResource TextSecondary}"
+                             FontSize="12"
+                             VerticalAlignment="Center"
+                             Margin="0,0,8,0" />
+                  <PasswordBox x:Name="ApiKeyBox" Grid.Column="1" />
+                </Grid>
+
+                <Grid Grid.Row="3">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="ApiPromptLabel"
+                             Foreground="{DynamicResource TextSecondary}"
+                             FontSize="12"
+                             VerticalAlignment="Top"
+                             Margin="0,8,8,0" />
+                  <TextBox x:Name="ApiPromptBox"
+                           Grid.Column="1"
+                           AcceptsReturn="True"
+                           TextWrapping="Wrap"
+                           VerticalContentAlignment="Top"
+                           VerticalScrollBarVisibility="Auto" />
+                </Grid>
+              </Grid>
+
+              <DockPanel Grid.Row="2" Margin="0,10,0,0" LastChildFill="False">
+                <Button x:Name="ApiTestButton"
+                        DockPanel.Dock="Left"
+                        Style="{StaticResource WinListButton}"
+                        Margin="0,0,8,0"
+                        VerticalAlignment="Center"
+                        Click="OnApiTestClick" />
+                <Button x:Name="ApiSaveButton"
+                        DockPanel.Dock="Left"
+                        Style="{StaticResource PrimaryButton}"
+                        Click="OnApiSaveClick" />
+                <TextBlock x:Name="ApiSavedLabel"
+                           DockPanel.Dock="Left"
+                           VerticalAlignment="Center"
+                           Margin="12,0,8,0"
+                           Foreground="{DynamicResource Accent}"
+                           FontSize="12"
+                           TextWrapping="Wrap"
+                           MaxWidth="200"
+                           Opacity="0" />
+                <Button x:Name="ApiRestoreButton"
+                        DockPanel.Dock="Right"
+                        Style="{StaticResource GhostButton}"
+                        VerticalAlignment="Center"
+                        Click="OnApiRestorePromptClick" />
+              </DockPanel>
+            </Grid>
+
+            <Border x:Name="HistoryPage" Visibility="Collapsed" />
+          </Grid>
+        </Grid>
+      </Grid>
+    </Grid>
+  </Border>
+  </Border>
+</Window>

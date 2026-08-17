@@ -3,9 +3,9 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using Otoink.App.Win32;
 using Otoink.Core;
+using Otoink.Core.I18n;
 
 namespace Otoink.App;
 
@@ -16,6 +16,8 @@ public partial class HistoryPanel : UserControl
     private readonly UnicodeInjector _injector;
     private readonly ObservableCollection<HistoryRowVm> _rows = new();
 
+    public event Action<string>? ErrorRaised;
+
     public HistoryPanel(TranscriptStore store, DictationOrchestrator orchestrator, UnicodeInjector injector)
     {
         _store = store;
@@ -24,14 +26,15 @@ public partial class HistoryPanel : UserControl
         InitializeComponent();
         HistoryList.ItemsSource = _rows;
         Refresh();
+        Loc.Changed += OnLocChanged;
+        Unloaded += (_, _) => Loc.Changed -= OnLocChanged;
     }
+
+    private void OnLocChanged() => Dispatcher.BeginInvoke(Refresh);
 
     public void Refresh()
     {
         var optimizingIds = _rows.Where(r => r.IsOptimizing).Select(r => r.Id).ToHashSet();
-        var errors = _rows
-            .Where(r => !string.IsNullOrEmpty(r.ErrorMessage) && !r.IsOptimizing)
-            .ToDictionary(r => r.Id, r => r.ErrorMessage!);
 
         _rows.Clear();
         foreach (var entry in _store.ListNewestFirst())
@@ -39,10 +42,12 @@ public partial class HistoryPanel : UserControl
             var row = new HistoryRowVm(entry);
             if (optimizingIds.Contains(entry.Id))
                 row.IsOptimizing = true;
-            else if (errors.TryGetValue(entry.Id, out var err))
-                row.ErrorMessage = err;
             _rows.Add(row);
         }
+
+        EmptyTitle.Text = Loc.T("History.EmptyTitle");
+        EmptyBody.Text = Loc.T("History.EmptyBody");
+        EmptyHint.Visibility = _rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private async void OnOptimizeClick(object sender, RoutedEventArgs e)
@@ -54,21 +59,16 @@ public partial class HistoryPanel : UserControl
 
         var id = row.Id;
         row.IsOptimizing = true;
-        row.ErrorMessage = null;
 
         try
         {
             var updated = await _orchestrator.OptimizeAsync(id, CancellationToken.None);
             if (FindRow(id) is { } current)
-            {
                 current.Apply(updated);
-                current.ErrorMessage = null;
-            }
         }
         catch (Exception ex)
         {
-            if (FindRow(id) is { } current)
-                current.ErrorMessage = ex.Message;
+            ErrorRaised?.Invoke(ex.Message);
         }
         finally
         {
@@ -77,20 +77,18 @@ public partial class HistoryPanel : UserControl
         }
     }
 
-    /// <summary>
-    /// Capture the caret window before the click focuses the bar; Insert uses that HWND.
-    /// Dictation-complete inject still uses the HWND captured at record start.
-    /// </summary>
-    private void OnInsertPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        _injector.CaptureForeground();
-    }
-
     private void OnInsertClick(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: HistoryRowVm row })
             return;
+        if (!_injector.TryFocusLastApp())
+        {
+            ErrorRaised?.Invoke(Loc.T("Toast.FocusFirst"));
+            return;
+        }
+
         _orchestrator.Insert(row.Id);
+        row.NotifyInserted();
     }
 
     private HistoryRowVm? FindRow(Guid id) =>
@@ -101,7 +99,8 @@ public partial class HistoryPanel : UserControl
         private string _rawText = "";
         private string? _correctedText;
         private bool _isOptimizing;
-        private string? _errorMessage;
+        private bool _inserted;
+        private int _insertToken;
 
         public HistoryRowVm(TranscriptEntry entry) => Apply(entry);
 
@@ -126,7 +125,7 @@ public partial class HistoryPanel : UserControl
         }
 
         public string CorrectedDisplay =>
-            CorrectedText is null ? "" : "AI：" + CorrectedText;
+            CorrectedText is null ? "" : Loc.T("History.AiPrefix") + CorrectedText;
 
         public Visibility CorrectedVisibility =>
             CorrectedText is null ? Visibility.Collapsed : Visibility.Visible;
@@ -140,29 +139,26 @@ public partial class HistoryPanel : UserControl
                     return;
                 OnPropertyChanged(nameof(CanOptimize));
                 OnPropertyChanged(nameof(OptimizeButtonText));
-                OnPropertyChanged(nameof(ErrorVisibility));
             }
         }
-
-        public string? ErrorMessage
-        {
-            get => _errorMessage;
-            set
-            {
-                if (!SetField(ref _errorMessage, value))
-                    return;
-                OnPropertyChanged(nameof(ErrorVisibility));
-            }
-        }
-
-        public Visibility ErrorVisibility =>
-            !IsOptimizing && !string.IsNullOrEmpty(ErrorMessage)
-                ? Visibility.Visible
-                : Visibility.Collapsed;
 
         public bool CanOptimize => !IsOptimizing;
 
-        public string OptimizeButtonText => IsOptimizing ? "优化中…" : "AI 优化";
+        public string OptimizeButtonText => IsOptimizing ? Loc.T("History.Optimizing") : Loc.T("History.Optimize");
+
+        public string InsertButtonText => _inserted ? Loc.T("History.Inserted") : Loc.T("History.Insert");
+
+        public async void NotifyInserted()
+        {
+            var token = ++_insertToken;
+            _inserted = true;
+            OnPropertyChanged(nameof(InsertButtonText));
+            await Task.Delay(1200);
+            if (token != _insertToken)
+                return;
+            _inserted = false;
+            OnPropertyChanged(nameof(InsertButtonText));
+        }
 
         public void Apply(TranscriptEntry entry)
         {

@@ -1,0 +1,73 @@
+<Window x:Class="Otoink.App.Tray.TrayMenuWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        Topmost="True"
+        ShowActivated="True"
+        Width="136"
+        SizeToContent="Height"
+        FontFamily="{StaticResource AppFont}"
+        Deactivated="OnDeactivated">
+        <Border Background="{DynamicResource FlyoutBg}"
+          BorderBrush="{DynamicResource FieldStroke}"
+          BorderThickness="1"
+          CornerRadius="12"
+          Padding="4,6">
+    <Border.Effect>
+      <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.35" Color="Black" />
+    </Border.Effect>
+    <StackPanel>
+      <Button x:Name="SettingsItem"
+              Height="32"
+              Click="OnSettings"
+              Cursor="Hand"
+              FontSize="13"
+              Foreground="{DynamicResource TextPrimary}"
+              Background="Transparent"
+              BorderThickness="0"
+              HorizontalContentAlignment="Left"
+              Padding="12,0">
+        <Button.Template>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Bg" Background="Transparent" CornerRadius="4">
+              <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource NavHover}" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Button.Template>
+      </Button>
+      <Rectangle Height="1" Fill="{DynamicResource RowLine}" Margin="8,4" />
+      <Button x:Name="ExitItem"
+              Height="32"
+              Click="OnExit"
+              Cursor="Hand"
+              FontSize="13"
+              Foreground="{DynamicResource TextPrimary}"
+              Background="Transparent"
+              BorderThickness="0"
+              HorizontalContentAlignment="Left"
+              Padding="12,0">
+        <Button.Template>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Bg" Background="Transparent" CornerRadius="4">
+              <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource NavHover}" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Button.Template>
+      </Button>
+    </StackPanel>
+  </Border>
+</Window>

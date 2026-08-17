@@ -24,11 +24,31 @@ public sealed class DictationOrchestrator
 
     public async Task<TranscriptEntry?> CompleteUtteranceAsync(DictationRequest request, CancellationToken cancellationToken)
     {
-        var raw = (await _asr.TranscribeAsync(request.Samples, request.SampleRate, cancellationToken)).Trim();
-        if (raw.Length == 0)
+        var chunks = SilenceSplit.Split(request.Samples, request.SampleRate);
+        if (chunks.Count == 0)
+            chunks = new[] { request.Samples };
+
+        var pieces = new string[chunks.Count];
+        for (var i = 0; i < chunks.Count; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            pieces[i] = (await _asr.TranscribeAsync(chunks[i], request.SampleRate, cancellationToken)).Trim();
+        }
+
+        var raw = TranscriptNoise.JoinChunks(pieces);
+        if (TranscriptNoise.IsIgnorable(raw))
+            return null;
+        return await CompleteTextAsync(raw, cancellationToken);
+    }
+
+    public async Task<TranscriptEntry?> CompleteTextAsync(string rawText, CancellationToken cancellationToken)
+    {
+        var raw = TranscriptNoise.Clean(rawText);
+        if (TranscriptNoise.IsIgnorable(raw))
             return null;
         var entry = _history.Add(raw);
-        if (_settings().DefaultAiInput)
+        var settings = _settings();
+        if (settings.DefaultAiInput && !string.IsNullOrWhiteSpace(settings.ApiKey))
         {
             var corrected = await _ai.CorrectAsync(raw, cancellationToken);
             entry = _history.UpdateCorrected(entry.Id, corrected.Trim());
@@ -53,4 +73,7 @@ public sealed class DictationOrchestrator
         var entry = _history.ListNewestFirst().First(e => e.Id == id);
         _injector.Inject(string.IsNullOrEmpty(entry.CorrectedText) ? entry.RawText : entry.CorrectedText);
     }
+
+    public Task ProbeApiAsync(CancellationToken cancellationToken) =>
+        _ai.ProbeAsync(cancellationToken);
 }

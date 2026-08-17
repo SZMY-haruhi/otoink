@@ -1,0 +1,42 @@
+<Window x:Class="Otoink.App.Design.DesignStudio"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="otoink preview"
+        Width="420"
+        Height="640"
+        WindowStartupLocation="Manual"
+        Background="#16181D"
+        FontFamily="{StaticResource AppFont}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+  <DockPanel Margin="16">
+    <TextBlock DockPanel.Dock="Top"
+               TextWrapping="Wrap"
+               FontSize="13"
+               Foreground="#C5C5C5"
+               Margin="0,0,0,12"
+               Text="The window on the right is the real bar. Switch states here and read measured pixels." />
+    <TextBlock x:Name="SizeText"
+               DockPanel.Dock="Top"
+               FontSize="13"
+               Foreground="#60CDFF"
+               Margin="0,0,0,12"
+               Text="measuring…" />
+    <TextBlock x:Name="ExportText"
+               DockPanel.Dock="Bottom"
+               FontSize="12"
+               Foreground="#9A9A9A"
+               TextWrapping="Wrap"
+               Margin="0,12,0,0" />
+    <StackPanel>
+      <Button Content="idle" Click="OnIdle" Margin="0,0,0,8" Height="36" />
+      <Button Content="hold" Click="OnHold" Margin="0,0,0,8" Height="36" />
+      <Button Content="click-to-talk" Click="OnToggle" Margin="0,0,0,8" Height="36" />
+      <Button Content="processing" Click="OnProcessing" Margin="0,0,0,8" Height="36" />
+      <Button Content="toast" Click="OnToast" Margin="0,0,0,8" Height="36" />
+      <Button Content="settings" Click="OnSettings" Margin="0,0,0,16" Height="36" />
+      <Button Content="export png" Click="OnExport" Height="40" />
+    </StackPanel>
+  </DockPanel>
+</Window>

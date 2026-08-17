@@ -8,7 +8,11 @@ public class DictationOrchestratorTests
     private readonly TranscriptStore _history = new();
 
     private DictationOrchestrator Create(bool defaultAiInput) =>
-        new(_asr, _ai, _injector, _history, () => new AppSettings { DefaultAiInput = defaultAiInput });
+        new(_asr, _ai, _injector, _history, () => new AppSettings
+        {
+            DefaultAiInput = defaultAiInput,
+            ApiKey = defaultAiInput ? "sk-test" : ""
+        });
 
     [Fact]
     public async Task Complete_without_default_ai_injects_raw_and_does_not_call_ai()
@@ -59,6 +63,76 @@ public class DictationOrchestratorTests
     }
 
     [Fact]
+    public async Task CompleteText_without_default_ai_injects_raw_and_does_not_call_ai()
+    {
+        var session = Create(defaultAiInput: false);
+        var entry = await session.CompleteTextAsync("系统识别稿", CancellationToken.None);
+
+        Assert.Equal("系统识别稿", entry.RawText);
+        Assert.Equal(new[] { "系统识别稿" }, _injector.Injected);
+        Assert.Equal(0, _ai.Calls);
+    }
+
+    [Fact]
+    public async Task CompleteText_strips_mid_sentence_fillers_before_inject()
+    {
+        var session = Create(defaultAiInput: false);
+        var entry = await session.CompleteTextAsync("嗯，系统识别稿", CancellationToken.None);
+
+        Assert.Equal("系统识别稿", entry!.RawText);
+        Assert.Equal(new[] { "系统识别稿" }, _injector.Injected);
+        Assert.Equal(0, _ai.Calls);
+    }
+
+    [Fact]
+    public async Task Complete_splits_thinking_pause_and_joins_without_comma()
+    {
+        var asr = new ScriptedAsr("我今天，", "去一趟");
+        var session = new DictationOrchestrator(asr, _ai, _injector, _history, () => new AppSettings());
+        var samples = Concat(Tone(16000), new float[9600], Tone(16000));
+
+        var entry = await session.CompleteUtteranceAsync(
+            new DictationRequest { Samples = samples, SampleRate = 16000 },
+            CancellationToken.None);
+
+        Assert.Equal("我今天去一趟", entry!.RawText);
+        Assert.Equal(new[] { "我今天去一趟" }, _injector.Injected);
+        Assert.Equal(2, asr.Calls);
+    }
+
+    [Fact]
+    public async Task Complete_with_default_ai_and_empty_key_injects_raw_without_calling_ai()
+    {
+        var session = new DictationOrchestrator(
+            _asr,
+            _ai,
+            _injector,
+            _history,
+            () => new AppSettings { DefaultAiInput = true, ApiKey = "" });
+
+        var entry = await session.CompleteUtteranceAsync(
+            new DictationRequest { Samples = new float[160], SampleRate = 16000 },
+            CancellationToken.None);
+
+        Assert.Equal("识别稿", entry!.RawText);
+        Assert.Null(entry.CorrectedText);
+        Assert.Equal(new[] { "识别稿" }, _injector.Injected);
+        Assert.Equal(0, _ai.Calls);
+    }
+
+    [Fact]
+    public async Task Complete_filler_asr_does_not_inject_or_store()
+    {
+        var asr = new FakeAsr("[.。？.。..。Yeah.]");
+        var session = new DictationOrchestrator(asr, _ai, _injector, _history, () => new AppSettings());
+        var entry = await session.CompleteUtteranceAsync(new DictationRequest { Samples = new float[160], SampleRate = 16000 }, CancellationToken.None);
+        Assert.Null(entry);
+        Assert.Empty(_history.ListNewestFirst());
+        Assert.Empty(_injector.Injected);
+        Assert.Equal(0, _ai.Calls);
+    }
+
+    [Fact]
     public async Task Complete_empty_asr_does_not_inject_or_call_ai()
     {
         var asr = new FakeAsr("   ");
@@ -74,7 +148,7 @@ public class DictationOrchestratorTests
     public async Task Complete_with_default_ai_when_ai_throws_keeps_raw_and_does_not_inject()
     {
         var ai = new ThrowingAi();
-        var session = new DictationOrchestrator(_asr, ai, _injector, _history, () => new AppSettings { DefaultAiInput = true });
+        var session = new DictationOrchestrator(_asr, ai, _injector, _history, () => new AppSettings { DefaultAiInput = true, ApiKey = "sk-test" });
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             session.CompleteUtteranceAsync(new DictationRequest { Samples = new float[160], SampleRate = 16000 }, CancellationToken.None));
@@ -93,6 +167,39 @@ public class DictationOrchestratorTests
         public FakeAsr(string text) => _text = text;
         public Task<string> TranscribeAsync(float[] samples, int sampleRate, CancellationToken cancellationToken) =>
             Task.FromResult(_text);
+    }
+
+    private sealed class ScriptedAsr : IAsrEngine
+    {
+        private readonly string[] _texts;
+        public int Calls { get; private set; }
+        public ScriptedAsr(params string[] texts) => _texts = texts;
+        public Task<string> TranscribeAsync(float[] samples, int sampleRate, CancellationToken cancellationToken)
+        {
+            var text = _texts[Math.Min(Calls, _texts.Length - 1)];
+            Calls++;
+            return Task.FromResult(text);
+        }
+    }
+
+    private static float[] Tone(int samples)
+    {
+        var data = new float[samples];
+        Array.Fill(data, 0.2f);
+        return data;
+    }
+
+    private static float[] Concat(params float[][] parts)
+    {
+        var data = new float[parts.Sum(p => p.Length)];
+        var offset = 0;
+        foreach (var part in parts)
+        {
+            Array.Copy(part, 0, data, offset, part.Length);
+            offset += part.Length;
+        }
+
+        return data;
     }
 
     private sealed class FakeAi : IAiCorrector

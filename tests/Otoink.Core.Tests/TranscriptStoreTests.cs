@@ -28,6 +28,21 @@ public class TranscriptStoreTests
     }
 
     [Fact]
+    public void Add_drops_oldest_when_over_capacity()
+    {
+        var store = new TranscriptStore();
+        for (var i = 0; i < TranscriptStore.MaxEntries + 3; i++)
+            store.Add(i.ToString());
+
+        var texts = store.ListNewestFirst().Select(e => e.RawText).ToArray();
+        Assert.Equal(TranscriptStore.MaxEntries, texts.Length);
+        Assert.Equal("12", texts[0]);
+        Assert.Equal("3", texts[^1]);
+        Assert.DoesNotContain("0", texts);
+        Assert.DoesNotContain("2", texts);
+    }
+
+    [Fact]
     public void UpdateCorrected_unknown_id_throws()
     {
         var store = new TranscriptStore();

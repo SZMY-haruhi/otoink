@@ -8,6 +8,9 @@ using SharpCompress.Compressors.BZip2;
 
 namespace Otoink.App.Asr;
 
+/// <summary>
+/// Build-time helper. Runtime must not call this — models ship next to the exe.
+/// </summary>
 public static class ModelDownloader
 {
     public const string ArchiveUrl =
@@ -41,7 +44,7 @@ public static class ModelDownloader
             }, cancellationToken).ConfigureAwait(false);
 
             if (!ModelLocator.IsInstalled())
-                throw new InvalidOperationException("模型归档中缺少 model.int8.onnx/model.onnx 或 tokens.txt。");
+                throw new InvalidOperationException("archive-missing-model");
         }
         finally
         {
@@ -71,16 +74,11 @@ public static class ModelDownloader
             var dest = fileName switch
             {
                 "model.int8.onnx" => ModelLocator.ModelOnnx,
-                "model.onnx" => ModelLocator.ModelOnnxFallback,
                 "tokens.txt" => ModelLocator.Tokens,
                 _ => null
             };
 
             if (dest is null)
-                continue;
-
-            // Prefer int8: skip plain model.onnx if int8 already present.
-            if (fileName == "model.onnx" && File.Exists(ModelLocator.ModelOnnx))
                 continue;
 
             Directory.CreateDirectory(Path.GetDirectoryName(dest)!);

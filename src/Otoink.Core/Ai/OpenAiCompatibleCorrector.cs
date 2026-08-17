@@ -13,7 +13,8 @@ public sealed class OpenAiCompatibleCorrector : IAiCorrector
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
     private readonly HttpClient _http;
@@ -29,8 +30,9 @@ public sealed class OpenAiCompatibleCorrector : IAiCorrector
     {
         var s = _settings();
         if (string.IsNullOrWhiteSpace(s.ApiKey))
-            throw new InvalidOperationException("API Key 未设置");
+            throw new InvalidOperationException("API Key is not set");
 
+        var prompt = string.IsNullOrWhiteSpace(s.ApiPrompt) ? SystemPrompt : s.ApiPrompt.Trim();
         var req = new HttpRequestMessage(HttpMethod.Post, Combine(s.ApiBaseUrl, "/chat/completions"));
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", s.ApiKey);
         req.Content = JsonContent.Create(new ChatRequest
@@ -39,19 +41,43 @@ public sealed class OpenAiCompatibleCorrector : IAiCorrector
             Temperature = 0.2,
             Messages = new[]
             {
-                new ChatMessage { Role = "system", Content = SystemPrompt },
+                new ChatMessage { Role = "system", Content = prompt },
                 new ChatMessage { Role = "user", Content = rawText }
             }
         }, options: JsonOptions);
 
         using var resp = await _http.SendAsync(req, cancellationToken);
-        resp.EnsureSuccessStatusCode();
+        await ApiError.ThrowIfFailedAsync(resp, cancellationToken);
         var parsed = await resp.Content.ReadFromJsonAsync<ChatResponse>(cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException("empty AI response");
         var content = parsed.Choices?.FirstOrDefault()?.Message?.Content?.Trim();
         if (string.IsNullOrEmpty(content))
-            throw new InvalidOperationException("AI 未返回正文");
+            throw new InvalidOperationException("AI returned no text");
         return content;
+    }
+
+    public async Task ProbeAsync(CancellationToken cancellationToken)
+    {
+        var s = _settings();
+        if (string.IsNullOrWhiteSpace(s.ApiKey))
+            throw new InvalidOperationException("API Key is not set");
+
+        var req = new HttpRequestMessage(HttpMethod.Post, Combine(s.ApiBaseUrl, "/chat/completions"));
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", s.ApiKey);
+        req.Content = JsonContent.Create(new ChatRequest
+        {
+            Model = s.ApiModel,
+            Temperature = 0,
+            MaxTokens = 8,
+            Messages =
+            [
+                new ChatMessage { Role = "system", Content = "Reply with OK." },
+                new ChatMessage { Role = "user", Content = "ping" }
+            ]
+        }, options: JsonOptions);
+
+        using var resp = await _http.SendAsync(req, cancellationToken);
+        await ApiError.ThrowIfFailedAsync(resp, cancellationToken);
     }
 
     private static Uri Combine(string baseUrl, string path)
@@ -64,6 +90,7 @@ public sealed class OpenAiCompatibleCorrector : IAiCorrector
     {
         [JsonPropertyName("model")] public string Model { get; set; } = "";
         [JsonPropertyName("temperature")] public double Temperature { get; set; }
+        [JsonPropertyName("max_tokens")] public int? MaxTokens { get; set; }
         [JsonPropertyName("messages")] public ChatMessage[] Messages { get; set; } = Array.Empty<ChatMessage>();
     }
 

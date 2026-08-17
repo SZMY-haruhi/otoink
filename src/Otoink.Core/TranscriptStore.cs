@@ -2,6 +2,8 @@ namespace Otoink.Core;
 
 public sealed class TranscriptStore
 {
+    public const int MaxEntries = 10;
+
     private readonly List<TranscriptEntry> _items = new();
 
     public TranscriptEntry Add(string rawText)
@@ -13,6 +15,8 @@ public sealed class TranscriptStore
             RawText = rawText
         };
         _items.Add(entry);
+        while (_items.Count > MaxEntries)
+            _items.RemoveAt(0);
         return entry;
     }
 

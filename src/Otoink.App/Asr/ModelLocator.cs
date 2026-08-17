@@ -7,11 +7,12 @@ public static class ModelLocator
     public const string ModelFolderName = "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17";
 
     public static string Root =>
-        Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "otoink",
-            "models",
-            ModelFolderName);
+        Path.Combine(AppContext.BaseDirectory, "models", ModelFolderName);
+
+    public static IEnumerable<string> Roots()
+    {
+        yield return Root;
+    }
 
     public static string ModelOnnx => Path.Combine(Root, "model.int8.onnx");
 
@@ -28,6 +29,9 @@ public static class ModelLocator
         return ModelOnnx;
     }
 
-    public static bool IsInstalled() =>
-        File.Exists(Tokens) && (File.Exists(ModelOnnx) || File.Exists(ModelOnnxFallback));
+    public static bool IsInstalled() => IsInstalledAt(Root);
+
+    private static bool IsInstalledAt(string root) =>
+        File.Exists(Path.Combine(root, "tokens.txt"))
+        && File.Exists(Path.Combine(root, "model.int8.onnx"));
 }
